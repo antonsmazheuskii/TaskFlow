@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
-import { fetchColumnsByBoardId } from '../services/columnsService'
+import {
+  createColumn as createColumnRequest,
+  deleteColumn as deleteColumnRequest,
+  fetchColumnsByBoardId,
+  renameColumn as renameColumnRequest,
+} from '../services/columnsService'
 import type { Column } from '../types/column'
 
 type UseColumnsResult = {
   columns: Column[]
   isLoading: boolean
   error: string | null
+  createColumn: (title: string) => Promise<void>
+  renameColumn: (columnId: string, title: string) => Promise<void>
+  deleteColumn: (columnId: string) => Promise<void>
 }
 
 export function useColumns(boardId: string | undefined): UseColumnsResult {
@@ -57,5 +65,33 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
     }
   }, [boardId])
 
-  return { columns, isLoading, error }
+  async function createColumn(title: string) {
+    if (!boardId) {
+      throw new Error('Доска не найдена.')
+    }
+
+    const column = await createColumnRequest(boardId, title)
+    setColumns((current) => [...current, column])
+  }
+
+  async function renameColumn(columnId: string, title: string) {
+    const column = await renameColumnRequest(columnId, title)
+    setColumns((current) =>
+      current.map((item) => (item.id === columnId ? column : item)),
+    )
+  }
+
+  async function deleteColumn(columnId: string) {
+    await deleteColumnRequest(columnId)
+    setColumns((current) => current.filter((item) => item.id !== columnId))
+  }
+
+  return {
+    columns,
+    isLoading,
+    error,
+    createColumn,
+    renameColumn,
+    deleteColumn,
+  }
 }

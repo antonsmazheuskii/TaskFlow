@@ -1,4 +1,4 @@
--- Таблица columns + политики select/insert для участников доски.
+-- Таблица columns + политики CRUD для участников доски.
 -- Выполнить в SQL Editor после boards.sql / boards_mutations.sql
 
 create table if not exists columns (
@@ -21,5 +21,22 @@ drop policy if exists "Members can create columns" on columns;
 create policy "Members can create columns"
   on columns for insert
   with check (
+    board_id in (select board_id from board_members where user_id = auth.uid())
+  );
+
+drop policy if exists "Members can update columns" on columns;
+create policy "Members can update columns"
+  on columns for update
+  using (
+    board_id in (select board_id from board_members where user_id = auth.uid())
+  )
+  with check (
+    board_id in (select board_id from board_members where user_id = auth.uid())
+  );
+
+drop policy if exists "Members can delete columns" on columns;
+create policy "Members can delete columns"
+  on columns for delete
+  using (
     board_id in (select board_id from board_members where user_id = auth.uid())
   );
