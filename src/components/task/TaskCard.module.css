@@ -9,6 +9,13 @@
   background: #f9fafb;
 }
 
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .open {
   margin: 0;
   padding: 0.2rem 0.25rem;
@@ -31,6 +38,42 @@
 .open:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-left: 0.25rem;
+}
+
+.priority {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.low {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.medium {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.high {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.dueDate {
+  font-size: 0.7rem;
+  color: #6b7280;
 }
 
 .dragHandle {

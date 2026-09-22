@@ -1,7 +1,8 @@
 import { supabase } from './supabaseClient'
-import type { Task } from '../types/task'
+import type { Task, TaskDetailsUpdate } from '../types/task'
 
-const TASK_SELECT = 'id, column_id, title, position, created_by, created_at' as const
+const TASK_SELECT =
+  'id, column_id, title, description, priority, due_date, assignee_id, position, created_by, created_at' as const
 
 export async function fetchTasksByBoardId(boardId: string): Promise<Task[]> {
   const { data: columns, error: columnsError } = await supabase
@@ -173,4 +174,33 @@ export async function deleteTask(taskId: string): Promise<void> {
   if (error) {
     throw error
   }
+}
+
+export async function updateTaskDetails(
+  taskId: string,
+  details: TaskDetailsUpdate,
+): Promise<Task> {
+  const trimmedTitle = details.title.trim()
+
+  if (!trimmedTitle) {
+    throw new Error('Введите название задачи.')
+  }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({
+      title: trimmedTitle,
+      description: details.description,
+      priority: details.priority,
+      due_date: details.due_date,
+    })
+    .eq('id', taskId)
+    .select(TASK_SELECT)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return data
 }

@@ -45,6 +45,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     isLoading: isTasksLoading,
     error: tasksError,
     createTask,
+    updateTaskDetails,
     moveTaskToColumn,
     reorderTasksInColumn,
     deleteTask,
@@ -194,6 +195,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
       {selectedTask ? (
         <TaskDetailsModal
           task={selectedTask}
+          onSave={updateTaskDetails}
           onClose={() => setSelectedTaskId(null)}
         />
       ) : null}

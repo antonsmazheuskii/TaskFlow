@@ -5,14 +5,19 @@ import {
   fetchTasksByBoardId,
   moveTaskToColumn as moveTaskToColumnRequest,
   reorderTasksInColumn as reorderTasksInColumnRequest,
+  updateTaskDetails as updateTaskDetailsRequest,
 } from '../services/tasksService'
-import type { Task } from '../types/task'
+import type { Task, TaskDetailsUpdate } from '../types/task'
 
 type UseTasksResult = {
   tasks: Task[]
   isLoading: boolean
   error: string | null
   createTask: (columnId: string, title: string) => Promise<void>
+  updateTaskDetails: (
+    taskId: string,
+    details: TaskDetailsUpdate,
+  ) => Promise<void>
   moveTaskToColumn: (
     taskId: string,
     targetColumnId: string,
@@ -81,6 +86,36 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
   async function createTask(columnId: string, title: string) {
     const task = await createTaskRequest(columnId, title)
     setTasks((current) => [...current, task])
+  }
+
+  async function updateTaskDetails(
+    taskId: string,
+    details: TaskDetailsUpdate,
+  ) {
+    const previousTasks = tasks
+    setTasks((current) =>
+      current.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              title: details.title.trim(),
+              description: details.description,
+              priority: details.priority,
+              due_date: details.due_date,
+            }
+          : task,
+      ),
+    )
+
+    try {
+      const updatedTask = await updateTaskDetailsRequest(taskId, details)
+      setTasks((current) =>
+        current.map((task) => (task.id === taskId ? updatedTask : task)),
+      )
+    } catch (err) {
+      setTasks(previousTasks)
+      throw err
+    }
   }
 
   async function moveTaskToColumn(
@@ -194,6 +229,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     isLoading,
     error,
     createTask,
+    updateTaskDetails,
     moveTaskToColumn,
     reorderTasksInColumn,
     deleteTask,

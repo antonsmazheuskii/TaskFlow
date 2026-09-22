@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState, type MouseEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
-import type { Task } from '../../types/task'
+import { TASK_PRIORITY_LABELS, type Task } from '../../types/task'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './TaskCard.module.css'
 
@@ -68,16 +68,28 @@ export function TaskCard({ task, onOpen, onDelete }: TaskCardProps) {
     }
   }
 
+  const priorityClass = `${styles.priority} ${styles[task.priority]}`
+
   return (
     <article ref={setNodeRef} style={style} className={styles.card}>
-      <button
-        className={styles.open}
-        type="button"
-        onClick={handleOpen}
-        disabled={isDeleting}
-      >
-        {task.title}
-      </button>
+      <div className={styles.main}>
+        <button
+          className={styles.open}
+          type="button"
+          onClick={handleOpen}
+          disabled={isDeleting}
+        >
+          {task.title}
+        </button>
+        <div className={styles.meta}>
+          <span className={priorityClass}>
+            {TASK_PRIORITY_LABELS[task.priority]}
+          </span>
+          {task.due_date ? (
+            <span className={styles.dueDate}>{task.due_date}</span>
+          ) : null}
+        </div>
+      </div>
 
       <button
         className={styles.dragHandle}
