@@ -14,6 +14,10 @@ type UseTasksResult = {
   isLoading: boolean
   error: string | null
   refetch: () => Promise<void>
+  applyRealtimeInsert: (task: Task) => void
+  applyRealtimeUpdate: (task: Task) => void
+  applyRealtimeDelete: (taskId: string) => void
+  applyRealtimeDeleteByColumn: (columnId: string) => void
   createTask: (columnId: string, title: string) => Promise<void>
   updateTaskDetails: (
     taskId: string,
@@ -100,6 +104,38 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
         err instanceof Error ? err.message : 'Не удалось загрузить задачи.'
       setError(message)
     }
+  }
+
+  function applyRealtimeInsert(task: Task) {
+    setTasks((current) => {
+      if (current.some((item) => item.id === task.id)) {
+        return current
+      }
+
+      return [...current, task]
+    })
+  }
+
+  function applyRealtimeUpdate(task: Task) {
+    setTasks((current) => {
+      const exists = current.some((item) => item.id === task.id)
+
+      if (!exists) {
+        return [...current, task]
+      }
+
+      return current.map((item) => (item.id === task.id ? task : item))
+    })
+  }
+
+  function applyRealtimeDelete(taskId: string) {
+    setTasks((current) => current.filter((item) => item.id !== taskId))
+  }
+
+  function applyRealtimeDeleteByColumn(columnId: string) {
+    setTasks((current) =>
+      current.filter((item) => item.column_id !== columnId),
+    )
   }
 
   async function createTask(columnId: string, title: string) {
@@ -249,6 +285,10 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     isLoading,
     error,
     refetch,
+    applyRealtimeInsert,
+    applyRealtimeUpdate,
+    applyRealtimeDelete,
+    applyRealtimeDeleteByColumn,
     createTask,
     updateTaskDetails,
     moveTaskToColumn,

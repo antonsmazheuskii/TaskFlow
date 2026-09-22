@@ -40,7 +40,9 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     columns,
     isLoading: isColumnsLoading,
     error: columnsError,
-    refetch: refetchColumns,
+    applyRealtimeInsert: applyColumnInsert,
+    applyRealtimeUpdate: applyColumnUpdate,
+    applyRealtimeDelete: applyColumnDelete,
     createColumn,
     renameColumn,
     deleteColumn,
@@ -50,7 +52,10 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     tasks,
     isLoading: isTasksLoading,
     error: tasksError,
-    refetch: refetchTasks,
+    applyRealtimeInsert: applyTaskInsert,
+    applyRealtimeUpdate: applyTaskUpdate,
+    applyRealtimeDelete: applyTaskDelete,
+    applyRealtimeDeleteByColumn: applyTaskDeleteByColumn,
     createTask,
     updateTaskDetails,
     moveTaskToColumn,
@@ -98,9 +103,16 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
   useBoardRealtime(
     boardId,
     columns.map((column) => column.id),
-    () => {
-      void refetchColumns()
-      void refetchTasks()
+    {
+      onColumnInsert: applyColumnInsert,
+      onColumnUpdate: applyColumnUpdate,
+      onColumnDelete: (columnId) => {
+        applyColumnDelete(columnId)
+        applyTaskDeleteByColumn(columnId)
+      },
+      onTaskInsert: applyTaskInsert,
+      onTaskUpdate: applyTaskUpdate,
+      onTaskDelete: applyTaskDelete,
     },
   )
 

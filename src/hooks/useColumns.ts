@@ -12,6 +12,9 @@ type UseColumnsResult = {
   isLoading: boolean
   error: string | null
   refetch: () => Promise<void>
+  applyRealtimeInsert: (column: Column) => void
+  applyRealtimeUpdate: (column: Column) => void
+  applyRealtimeDelete: (columnId: string) => void
   createColumn: (title: string) => Promise<void>
   renameColumn: (columnId: string, title: string) => Promise<void>
   deleteColumn: (columnId: string) => Promise<void>
@@ -98,6 +101,34 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
     await loadColumns({ silent: true })
   }
 
+  function applyRealtimeInsert(column: Column) {
+    setColumns((current) => {
+      if (current.some((item) => item.id === column.id)) {
+        return current
+      }
+
+      return [...current, column].sort((a, b) => a.position - b.position)
+    })
+  }
+
+  function applyRealtimeUpdate(column: Column) {
+    setColumns((current) => {
+      const exists = current.some((item) => item.id === column.id)
+
+      if (!exists) {
+        return [...current, column].sort((a, b) => a.position - b.position)
+      }
+
+      return current
+        .map((item) => (item.id === column.id ? column : item))
+        .sort((a, b) => a.position - b.position)
+    })
+  }
+
+  function applyRealtimeDelete(columnId: string) {
+    setColumns((current) => current.filter((item) => item.id !== columnId))
+  }
+
   async function createColumn(title: string) {
     if (!boardId) {
       throw new Error('Доска не найдена.')
@@ -124,6 +155,9 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
     isLoading,
     error,
     refetch,
+    applyRealtimeInsert,
+    applyRealtimeUpdate,
+    applyRealtimeDelete,
     createColumn,
     renameColumn,
     deleteColumn,
