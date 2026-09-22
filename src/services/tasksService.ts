@@ -90,34 +90,87 @@ export async function createTask(
 export async function moveTaskToColumn(
   taskId: string,
   targetColumnId: string,
-): Promise<Task> {
-  const { data: existing, error: existingError } = await supabase
+  targetIndex?: number,
+): Promise<Task[]> {
+  const { data: columnTasks, error: columnTasksError } = await supabase
     .from('tasks')
-    .select('position')
+    .select(TASK_SELECT)
     .eq('column_id', targetColumnId)
-    .order('position', { ascending: false })
-    .limit(1)
+    .neq('id', taskId)
+    .order('position', { ascending: true })
 
-  if (existingError) {
-    throw existingError
+  if (columnTasksError) {
+    throw columnTasksError
   }
 
-  const nextPosition =
-    existing && existing.length > 0 ? existing[0].position + 1 : 0
+  const siblings = columnTasks ?? []
+  const insertIndex =
+    targetIndex === undefined
+      ? siblings.length
+      : Math.max(0, Math.min(targetIndex, siblings.length))
 
-  const { data, error } = await supabase
-    .from('tasks')
-    .update({
-      column_id: targetColumnId,
-      position: nextPosition,
-    })
-    .eq('id', taskId)
-    .select(TASK_SELECT)
-    .single()
+  const orderedIds = [
+    ...siblings.slice(0, insertIndex).map((task) => task.id),
+    taskId,
+    ...siblings.slice(insertIndex).map((task) => task.id),
+  ]
+
+  const updates = orderedIds.map((id, position) =>
+    supabase
+      .from('tasks')
+      .update({
+        column_id: targetColumnId,
+        position,
+      })
+      .eq('id', id)
+      .select(TASK_SELECT)
+      .single(),
+  )
+
+  const results = await Promise.all(updates)
+  const failed = results.find((result) => result.error)
+
+  if (failed?.error) {
+    throw failed.error
+  }
+
+  return results
+    .map((result) => result.data)
+    .filter((task): task is Task => task !== null)
+}
+
+export async function reorderTasksInColumn(
+  columnId: string,
+  orderedTaskIds: string[],
+): Promise<Task[]> {
+  const updates = orderedTaskIds.map((id, position) =>
+    supabase
+      .from('tasks')
+      .update({
+        column_id: columnId,
+        position,
+      })
+      .eq('id', id)
+      .select(TASK_SELECT)
+      .single(),
+  )
+
+  const results = await Promise.all(updates)
+  const failed = results.find((result) => result.error)
+
+  if (failed?.error) {
+    throw failed.error
+  }
+
+  return results
+    .map((result) => result.data)
+    .filter((task): task is Task => task !== null)
+}
+
+export async function deleteTask(taskId: string): Promise<void> {
+  const { error } = await supabase.from('tasks').delete().eq('id', taskId)
 
   if (error) {
     throw error
   }
-
-  return data
 }

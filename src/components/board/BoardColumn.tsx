@@ -1,5 +1,9 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useDroppable } from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { CreateTaskForm } from '../task/CreateTaskForm'
 import { TaskCard } from '../task/TaskCard'
 import type { Column } from '../../types/column'
@@ -13,6 +17,7 @@ type BoardColumnProps = {
   onRename: (columnId: string, title: string) => Promise<void>
   onDelete: (columnId: string) => Promise<void>
   onCreateTask: (columnId: string, title: string) => Promise<void>
+  onDeleteTask: (taskId: string) => Promise<void>
 }
 
 export function BoardColumn({
@@ -21,6 +26,7 @@ export function BoardColumn({
   onRename,
   onDelete,
   onCreateTask,
+  onDeleteTask,
 }: BoardColumnProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(column.title)
@@ -171,9 +177,14 @@ export function BoardColumn({
       ) : null}
 
       <div ref={setNodeRef} className={tasksClassName}>
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+        <SortableContext
+          items={tasks.map((task) => task.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {tasks.map((task) => (
+            <TaskCard key={task.id} task={task} onDelete={onDeleteTask} />
+          ))}
+        </SortableContext>
       </div>
 
       <CreateTaskForm onCreate={handleCreateTask} />

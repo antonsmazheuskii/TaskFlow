@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import {
   createTask as createTaskRequest,
+  deleteTask as deleteTaskRequest,
   fetchTasksByBoardId,
   moveTaskToColumn as moveTaskToColumnRequest,
+  reorderTasksInColumn as reorderTasksInColumnRequest,
 } from '../services/tasksService'
 import type { Task } from '../types/task'
 
@@ -11,7 +13,20 @@ type UseTasksResult = {
   isLoading: boolean
   error: string | null
   createTask: (columnId: string, title: string) => Promise<void>
-  moveTaskToColumn: (taskId: string, targetColumnId: string) => Promise<void>
+  moveTaskToColumn: (
+    taskId: string,
+    targetColumnId: string,
+    targetIndex?: number,
+  ) => Promise<void>
+  reorderTasksInColumn: (
+    columnId: string,
+    orderedTaskIds: string[],
+  ) => Promise<void>
+  deleteTask: (taskId: string) => Promise<void>
+}
+
+function sortByPosition(tasks: Task[]): Task[] {
+  return [...tasks].sort((a, b) => a.position - b.position)
 }
 
 export function useTasks(boardId: string | undefined): UseTasksResult {
@@ -68,7 +83,11 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     setTasks((current) => [...current, task])
   }
 
-  async function moveTaskToColumn(taskId: string, targetColumnId: string) {
+  async function moveTaskToColumn(
+    taskId: string,
+    targetColumnId: string,
+    targetIndex?: number,
+  ) {
     const previousTasks = tasks
     const movingTask = tasks.find((task) => task.id === taskId)
 
@@ -76,32 +95,107 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
       return
     }
 
-    const targetTasks = tasks.filter(
-      (task) => task.column_id === targetColumnId && task.id !== taskId,
-    )
-    const nextPosition =
-      targetTasks.length > 0
-        ? Math.max(...targetTasks.map((task) => task.position)) + 1
-        : 0
-
-    setTasks((current) =>
-      current.map((task) =>
-        task.id === taskId
-          ? { ...task, column_id: targetColumnId, position: nextPosition }
-          : task,
+    const siblings = sortByPosition(
+      tasks.filter(
+        (task) => task.column_id === targetColumnId && task.id !== taskId,
       ),
     )
+    const insertIndex =
+      targetIndex === undefined
+        ? siblings.length
+        : Math.max(0, Math.min(targetIndex, siblings.length))
+
+    const optimisticTarget = [
+      ...siblings.slice(0, insertIndex),
+      { ...movingTask, column_id: targetColumnId },
+      ...siblings.slice(insertIndex),
+    ].map((task, position) => ({ ...task, position }))
+
+    setTasks((current) => [
+      ...current.filter(
+        (task) =>
+          task.id !== taskId && task.column_id !== targetColumnId,
+      ),
+      ...optimisticTarget,
+    ])
 
     try {
-      const updatedTask = await moveTaskToColumnRequest(taskId, targetColumnId)
-      setTasks((current) =>
-        current.map((task) => (task.id === taskId ? updatedTask : task)),
+      const updatedTargetTasks = await moveTaskToColumnRequest(
+        taskId,
+        targetColumnId,
+        targetIndex,
       )
+
+      setTasks((current) => [
+        ...current.filter(
+          (task) =>
+            task.id !== taskId && task.column_id !== targetColumnId,
+        ),
+        ...updatedTargetTasks,
+      ])
     } catch (err) {
       setTasks(previousTasks)
       throw err
     }
   }
 
-  return { tasks, isLoading, error, createTask, moveTaskToColumn }
+  async function reorderTasksInColumn(
+    columnId: string,
+    orderedTaskIds: string[],
+  ) {
+    const previousTasks = tasks
+    const columnTaskMap = new Map(
+      tasks
+        .filter((task) => task.column_id === columnId)
+        .map((task) => [task.id, task]),
+    )
+
+    const optimistic = orderedTaskIds
+      .map((id, position) => {
+        const task = columnTaskMap.get(id)
+        return task ? { ...task, position } : null
+      })
+      .filter((task): task is Task => task !== null)
+
+    setTasks((current) => [
+      ...current.filter((task) => task.column_id !== columnId),
+      ...optimistic,
+    ])
+
+    try {
+      const updatedTasks = await reorderTasksInColumnRequest(
+        columnId,
+        orderedTaskIds,
+      )
+      setTasks((current) => [
+        ...current.filter((task) => task.column_id !== columnId),
+        ...updatedTasks,
+      ])
+    } catch (err) {
+      setTasks(previousTasks)
+      throw err
+    }
+  }
+
+  async function deleteTask(taskId: string) {
+    const previousTasks = tasks
+    setTasks((current) => current.filter((task) => task.id !== taskId))
+
+    try {
+      await deleteTaskRequest(taskId)
+    } catch (err) {
+      setTasks(previousTasks)
+      throw err
+    }
+  }
+
+  return {
+    tasks,
+    isLoading,
+    error,
+    createTask,
+    moveTaskToColumn,
+    reorderTasksInColumn,
+    deleteTask,
+  }
 }
