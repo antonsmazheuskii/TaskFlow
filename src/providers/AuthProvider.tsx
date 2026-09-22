@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import { ensureUserProfile } from '../services/profilesService'
 import { supabase } from '../services/supabaseClient'
 
 type AuthContextValue = {
@@ -27,6 +28,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let isMounted = true
 
+    async function syncProfile(nextSession: Session | null) {
+      if (!nextSession?.user) {
+        return
+      }
+
+      try {
+        await ensureUserProfile(nextSession.user.id, nextSession.user.email)
+      } catch {
+        // Профиль не блокирует вход; список исполнителей может быть без имени.
+      }
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       if (!isMounted) {
         return
@@ -34,6 +47,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setSession(data.session)
       setIsLoading(false)
+      void syncProfile(data.session)
     })
 
     const {
@@ -41,6 +55,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession)
       setIsLoading(false)
+      void syncProfile(nextSession)
     })
 
     return () => {

@@ -102,6 +102,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
               description: details.description,
               priority: details.priority,
               due_date: details.due_date,
+              assignee_id: details.assignee_id,
             }
           : task,
       ),

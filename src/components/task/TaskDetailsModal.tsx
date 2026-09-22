@@ -1,17 +1,22 @@
-import { useNotification } from '../../providers/NotificationProvider'
+import type { BoardMember } from '../../types/boardMember'
 import type { Task, TaskDetailsUpdate } from '../../types/task'
+import { useNotification } from '../../providers/NotificationProvider'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import { Modal } from '../shared/Modal'
 import { TaskDetailsForm } from './TaskDetailsForm'
 
 type TaskDetailsModalProps = {
   task: Task
+  members: BoardMember[]
+  areMembersLoading: boolean
   onSave: (taskId: string, details: TaskDetailsUpdate) => Promise<void>
   onClose: () => void
 }
 
 export function TaskDetailsModal({
   task,
+  members,
+  areMembersLoading,
   onSave,
   onClose,
 }: TaskDetailsModalProps) {
@@ -29,7 +34,13 @@ export function TaskDetailsModal({
 
   return (
     <Modal title="Детали задачи" onClose={onClose}>
-      <TaskDetailsForm task={task} onSave={handleSave} onCancel={onClose} />
+      <TaskDetailsForm
+        task={task}
+        members={members}
+        areMembersLoading={areMembersLoading}
+        onSave={handleSave}
+        onCancel={onClose}
+      />
     </Modal>
   )
 }

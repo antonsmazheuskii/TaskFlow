@@ -38,6 +38,7 @@ create policy "Owner can delete board"
   using (owner_id = auth.uid());
 
 drop policy if exists "Users can view their board memberships" on board_members;
+drop policy if exists "Members can view fellow board members" on board_members;
 create policy "Users can view their board memberships"
   on board_members for select
   using (user_id = auth.uid());

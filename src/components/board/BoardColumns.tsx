@@ -9,8 +9,12 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useColumns } from '../../hooks/useColumns'
+import { useBoardMembers } from '../../hooks/useBoardMembers'
 import { useTasks } from '../../hooks/useTasks'
 import { useNotification } from '../../providers/NotificationProvider'
+import {
+  getMemberDisplayName,
+} from '../../types/boardMember'
 import type { Task } from '../../types/task'
 import { parseColumnDroppableId } from '../../utils/dndIds'
 import { getErrorMessage } from '../../utils/getErrorMessage'
@@ -51,10 +55,34 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     deleteTask,
   } = useTasks(boardId)
 
+  const {
+    members,
+    isLoading: isMembersLoading,
+    error: membersError,
+  } = useBoardMembers(boardId)
+
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
 
   const selectedTask =
     tasks.find((task) => task.id === selectedTaskId) ?? null
+
+  const membersById = new Map(
+    members.map((member) => [member.user_id, member]),
+  )
+
+  function getAssigneeLabel(assigneeId: string | null): string | null {
+    if (!assigneeId) {
+      return null
+    }
+
+    const member = membersById.get(assigneeId)
+
+    if (!member) {
+      return `Участник ${assigneeId.slice(0, 8)}`
+    }
+
+    return getMemberDisplayName(member)
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -75,6 +103,12 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
       notifyError(tasksError)
     }
   }, [tasksError, notifyError])
+
+  useEffect(() => {
+    if (membersError) {
+      notifyError(membersError)
+    }
+  }, [membersError, notifyError])
 
   useEffect(() => {
     if (selectedTaskId && !tasks.some((task) => task.id === selectedTaskId)) {
@@ -186,6 +220,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
               onCreateTask={createTask}
               onOpenTask={handleOpenTask}
               onDeleteTask={deleteTask}
+              getAssigneeLabel={getAssigneeLabel}
             />
           ))}
           <CreateColumnForm onCreate={createColumn} />
@@ -195,6 +230,8 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
       {selectedTask ? (
         <TaskDetailsModal
           task={selectedTask}
+          members={members}
+          areMembersLoading={isMembersLoading}
           onSave={updateTaskDetails}
           onClose={() => setSelectedTaskId(null)}
         />

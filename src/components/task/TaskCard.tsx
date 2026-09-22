@@ -8,11 +8,17 @@ import styles from './TaskCard.module.css'
 
 type TaskCardProps = {
   task: Task
+  assigneeLabel: string | null
   onOpen: (task: Task) => void
   onDelete: (taskId: string) => Promise<void>
 }
 
-export function TaskCard({ task, onOpen, onDelete }: TaskCardProps) {
+export function TaskCard({
+  task,
+  assigneeLabel,
+  onOpen,
+  onDelete,
+}: TaskCardProps) {
   const { notifyError, notifySuccess } = useNotification()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -87,6 +93,9 @@ export function TaskCard({ task, onOpen, onDelete }: TaskCardProps) {
           </span>
           {task.due_date ? (
             <span className={styles.dueDate}>{task.due_date}</span>
+          ) : null}
+          {assigneeLabel ? (
+            <span className={styles.assignee}>{assigneeLabel}</span>
           ) : null}
         </div>
       </div>

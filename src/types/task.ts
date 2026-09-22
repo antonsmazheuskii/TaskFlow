@@ -18,6 +18,7 @@ export type TaskDetailsUpdate = {
   description: string | null
   priority: TaskPriority
   due_date: string | null
+  assignee_id: string | null
 }
 
 export const TASK_PRIORITIES: TaskPriority[] = ['low', 'medium', 'high']
