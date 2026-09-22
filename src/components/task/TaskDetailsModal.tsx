@@ -3,7 +3,9 @@ import type { Task, TaskDetailsUpdate } from '../../types/task'
 import { useNotification } from '../../providers/NotificationProvider'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import { Modal } from '../shared/Modal'
+import { TaskComments } from './TaskComments'
 import { TaskDetailsForm } from './TaskDetailsForm'
+import styles from './TaskDetailsModal.module.css'
 
 type TaskDetailsModalProps = {
   task: Task
@@ -34,13 +36,16 @@ export function TaskDetailsModal({
 
   return (
     <Modal title="Детали задачи" onClose={onClose}>
-      <TaskDetailsForm
-        task={task}
-        members={members}
-        areMembersLoading={areMembersLoading}
-        onSave={handleSave}
-        onCancel={onClose}
-      />
+      <div className={styles.content}>
+        <TaskDetailsForm
+          task={task}
+          members={members}
+          areMembersLoading={areMembersLoading}
+          onSave={handleSave}
+          onCancel={onClose}
+        />
+        <TaskComments taskId={task.id} />
+      </div>
     </Modal>
   )
 }
