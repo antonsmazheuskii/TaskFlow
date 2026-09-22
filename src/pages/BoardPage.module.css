@@ -1,0 +1,45 @@
+.page {
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: #f3f4f6;
+}
+
+.header {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #1d4ed8;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  word-break: break-word;
+}
+
+.status {
+  margin: 0;
+  color: #6b7280;
+}
+
+.error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  max-width: 480px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+}

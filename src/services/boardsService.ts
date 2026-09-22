@@ -14,6 +14,20 @@ export async function fetchMyBoards(): Promise<Board[]> {
   return data ?? []
 }
 
+export async function fetchBoardById(boardId: string): Promise<Board> {
+  const { data, error } = await supabase
+    .from('boards')
+    .select('id, title, owner_id, created_at')
+    .eq('id', boardId)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
 export async function createBoard(title: string): Promise<Board> {
   const {
     data: { user },

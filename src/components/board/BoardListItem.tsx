@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
+import { Link } from 'react-router-dom'
 import type { Board } from '../../types/board'
 import styles from './BoardListItem.module.css'
 
@@ -11,7 +12,10 @@ export function BoardListItem({ board, onDelete }: BoardListItemProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleDelete() {
+  async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
+    event.stopPropagation()
+
     const confirmed = window.confirm(
       `Удалить доску «${board.title}»? Это действие нельзя отменить.`,
     )
@@ -36,7 +40,9 @@ export function BoardListItem({ board, onDelete }: BoardListItemProps) {
   return (
     <li className={styles.item}>
       <div className={styles.row}>
-        <span className={styles.title}>{board.title}</span>
+        <Link className={styles.title} to={`/boards/${board.id}`}>
+          {board.title}
+        </Link>
         <button
           className={styles.delete}
           type="button"
