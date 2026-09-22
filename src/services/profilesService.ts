@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient'
+import type { Profile } from '../types/profile'
 
 export async function ensureUserProfile(
   userId: string,
@@ -53,6 +54,63 @@ export async function ensureUserProfile(
   if (error) {
     throw error
   }
+}
+
+export async function fetchOwnProfile(userId: string): Promise<Profile> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, email, avatar_url')
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export type UpdateProfileInput = {
+  name: string
+  avatarUrl: string | null
+}
+
+export async function updateOwnProfile(
+  userId: string,
+  input: UpdateProfileInput,
+): Promise<Profile> {
+  const trimmedName = input.name.trim()
+
+  if (!trimmedName) {
+    throw new Error('Введите имя.')
+  }
+
+  const avatarUrl = input.avatarUrl?.trim() || null
+
+  if (avatarUrl) {
+    try {
+      // eslint-disable-next-line no-new
+      new URL(avatarUrl)
+    } catch {
+      throw new Error('Укажите корректный URL аватара.')
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      name: trimmedName,
+      avatar_url: avatarUrl,
+    })
+    .eq('id', userId)
+    .select('id, name, email, avatar_url')
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return data
 }
 
 export async function findProfileIdByEmail(email: string): Promise<string | null> {

@@ -56,7 +56,15 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
       </div>
 
       <div className={styles.right}>
-        {user?.email ? <p className={styles.user}>{user.email}</p> : null}
+        {user?.email ? (
+          <Link className={styles.profileLink} to="/profile">
+            {user.email}
+          </Link>
+        ) : (
+          <Link className={styles.profileLink} to="/profile">
+            Профиль
+          </Link>
+        )}
         <LogoutButton />
       </div>
     </header>

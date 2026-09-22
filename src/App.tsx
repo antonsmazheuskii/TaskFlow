@@ -6,6 +6,7 @@ import { NotificationProvider } from './providers/NotificationProvider'
 import { BoardPage } from './pages/BoardPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { RegisterPage } from './pages/RegisterPage'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/boards/:boardId" element={<BoardPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route element={<GuestRoute />}>
               <Route path="/login" element={<LoginPage />} />

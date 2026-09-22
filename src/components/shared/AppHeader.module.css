@@ -89,6 +89,19 @@
   overflow-wrap: anywhere;
 }
 
+.profileLink {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.profileLink:hover {
+  text-decoration: underline;
+}
+
 @media (min-width: 640px) {
   .header {
     flex-direction: row;
