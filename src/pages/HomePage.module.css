@@ -1,29 +1,39 @@
 .page {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 1.5rem;
   background: #f3f4f6;
 }
 
-.card {
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 720px;
+  margin: 0 auto 1.5rem;
 }
 
 .title {
-  margin: 0 0 0.5rem;
+  margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
 }
 
-.text {
-  margin: 0 0 1.25rem;
-  color: #4b5563;
+.user {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
 }
