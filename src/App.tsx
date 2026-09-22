@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { GuestRoute } from './components/auth/GuestRoute'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AuthProvider } from './providers/AuthProvider'
 import { BoardPage } from './pages/BoardPage'
@@ -15,8 +16,10 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/boards/:boardId" element={<BoardPage />} />
           </Route>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route element={<GuestRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>

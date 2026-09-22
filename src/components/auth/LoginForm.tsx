@@ -1,14 +1,19 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { signIn } from '../../services/authService'
 import styles from './AuthForm.module.css'
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const redirectTo =
+    (location.state as { from?: { pathname?: string } } | null)?.from
+      ?.pathname ?? '/'
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -30,7 +35,7 @@ export function LoginForm() {
 
     try {
       await signIn({ email: trimmedEmail, password })
-      navigate('/')
+      navigate(redirectTo, { replace: true })
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Не удалось войти.'

@@ -1,11 +1,10 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../providers/AuthProvider'
 import { Spinner } from '../shared/Spinner'
 import styles from './ProtectedRoute.module.css'
 
-export function ProtectedRoute() {
+export function GuestRoute() {
   const { user, isLoading } = useAuth()
-  const location = useLocation()
 
   if (isLoading) {
     return (
@@ -15,8 +14,8 @@ export function ProtectedRoute() {
     )
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace state={{ from: location }} />
+  if (user) {
+    return <Navigate to="/" replace />
   }
 
   return <Outlet />

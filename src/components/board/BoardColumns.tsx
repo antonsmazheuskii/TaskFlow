@@ -12,6 +12,7 @@ import { useColumns } from '../../hooks/useColumns'
 import { useTasks } from '../../hooks/useTasks'
 import { parseColumnDroppableId } from '../../utils/dndIds'
 import { BoardColumn } from './BoardColumn'
+import { BoardColumnsSkeleton } from './BoardColumnsSkeleton'
 import { CreateColumnForm } from './CreateColumnForm'
 import styles from './BoardColumns.module.css'
 
@@ -127,7 +128,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
   }
 
   if (isColumnsLoading || isTasksLoading) {
-    return <p className={styles.status}>Загрузка доски…</p>
+    return <BoardColumnsSkeleton />
   }
 
   if (columnsError || tasksError) {

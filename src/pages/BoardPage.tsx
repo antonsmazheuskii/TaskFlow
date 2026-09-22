@@ -1,5 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
 import { BoardColumns } from '../components/board/BoardColumns'
+import { BoardColumnsSkeleton } from '../components/board/BoardColumnsSkeleton'
+import { AppHeader } from '../components/shared/AppHeader'
+import { Skeleton } from '../components/shared/Skeleton'
 import { useBoard } from '../hooks/useBoard'
 import styles from './BoardPage.module.css'
 
@@ -10,7 +13,13 @@ export function BoardPage() {
   if (isLoading) {
     return (
       <main className={styles.page}>
-        <p className={styles.status}>Загрузка доски…</p>
+        <AppHeader breadcrumbs={[{ label: 'Загрузка…' }]} />
+        <div className={styles.loadingTitle}>
+          <Skeleton height="1.75rem" width="40%" />
+        </div>
+        <section className={styles.columns}>
+          <BoardColumnsSkeleton />
+        </section>
       </main>
     )
   }
@@ -18,11 +27,12 @@ export function BoardPage() {
   if (error || !board) {
     return (
       <main className={styles.page}>
+        <AppHeader />
         <p className={styles.error} role="alert">
           {error ?? 'Доска не найдена.'}
         </p>
         <Link className={styles.back} to="/">
-          К списку досок
+          Вернуться к списку досок
         </Link>
       </main>
     )
@@ -30,14 +40,9 @@ export function BoardPage() {
 
   return (
     <main className={styles.page}>
-      <header className={styles.header}>
-        <Link className={styles.back} to="/">
-          ← К списку досок
-        </Link>
-        <h1 className={styles.title}>{board.title}</h1>
-      </header>
+      <AppHeader breadcrumbs={[{ label: board.title }]} />
 
-      <section className={styles.columns}>
+      <section className={styles.columns} aria-label={`Доска ${board.title}`}>
         <BoardColumns boardId={board.id} />
       </section>
     </main>

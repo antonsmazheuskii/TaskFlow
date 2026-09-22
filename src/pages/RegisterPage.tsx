@@ -6,8 +6,9 @@ export function RegisterPage() {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
+        <p className={styles.brand}>TaskFlow</p>
         <h1 className={styles.title}>Регистрация</h1>
-        <p className={styles.subtitle}>Создайте аккаунт TaskFlow</p>
+        <p className={styles.subtitle}>Создайте аккаунт, чтобы управлять досками</p>
         <RegisterForm />
         <p className={styles.footer}>
           Уже есть аккаунт?{' '}

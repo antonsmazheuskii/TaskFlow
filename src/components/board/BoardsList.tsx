@@ -1,4 +1,5 @@
 import { BoardListItem } from './BoardListItem'
+import { BoardsListSkeleton } from './BoardsListSkeleton'
 import type { Board } from '../../types/board'
 import styles from './BoardsList.module.css'
 
@@ -16,7 +17,7 @@ export function BoardsList({
   onDelete,
 }: BoardsListProps) {
   if (isLoading) {
-    return <p className={styles.status}>Загрузка досок…</p>
+    return <BoardsListSkeleton />
   }
 
   if (error) {
