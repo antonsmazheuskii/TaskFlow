@@ -5,6 +5,7 @@ export type Comment = {
   content: string
   created_at: string
   author_name: string
+  author_avatar_url: string | null
 }
 
 export function getCommentAuthorLabel(

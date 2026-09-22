@@ -115,6 +115,14 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
     return getMemberDisplayName(member)
   }
 
+  function getAssigneeAvatarUrl(assigneeId: string | null): string | null {
+    if (!assigneeId) {
+      return null
+    }
+
+    return membersById.get(assigneeId)?.avatar_url ?? null
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -275,6 +283,7 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
               onOpenTask={handleOpenTask}
               onDeleteTask={deleteTask}
               getAssigneeLabel={getAssigneeLabel}
+              getAssigneeAvatarUrl={getAssigneeAvatarUrl}
             />
           ))}
           {permissions.canManageColumns ? (

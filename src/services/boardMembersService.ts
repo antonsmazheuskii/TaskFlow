@@ -25,24 +25,29 @@ export async function fetchBoardMembers(
 
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
-    .select('id, name')
+    .select('id, name, avatar_url')
     .in('id', userIds)
 
   if (profilesError) {
     throw profilesError
   }
 
-  const nameByUserId = new Map(
-    (profiles ?? []).map((profile) => [profile.id, profile.name]),
+  const profileByUserId = new Map(
+    (profiles ?? []).map((profile) => [profile.id, profile]),
   )
 
-  return rows.map((member) => ({
-    id: member.id,
-    board_id: member.board_id,
-    user_id: member.user_id,
-    role: member.role,
-    name: nameByUserId.get(member.user_id) ?? null,
-  }))
+  return rows.map((member) => {
+    const profile = profileByUserId.get(member.user_id)
+
+    return {
+      id: member.id,
+      board_id: member.board_id,
+      user_id: member.user_id,
+      role: member.role,
+      name: profile?.name ?? null,
+      avatar_url: profile?.avatar_url ?? null,
+    }
+  })
 }
 
 export async function inviteBoardMemberByEmail(
@@ -86,7 +91,7 @@ export async function inviteBoardMemberByEmail(
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('name')
+    .select('name, avatar_url')
     .eq('id', userId)
     .maybeSingle()
 
@@ -100,6 +105,7 @@ export async function inviteBoardMemberByEmail(
     user_id: member.user_id,
     role: member.role,
     name: profile?.name ?? null,
+    avatar_url: profile?.avatar_url ?? null,
   }
 }
 

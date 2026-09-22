@@ -12,11 +12,16 @@ type CommentRow = {
   created_at: string
 }
 
+type AuthorInfo = {
+  name: string
+  avatarUrl: string | null
+}
+
 const COMMENT_SELECT = 'id, task_id, user_id, content, created_at' as const
 
-async function resolveAuthorNames(
+async function resolveAuthors(
   userIds: string[],
-): Promise<Map<string, string>> {
+): Promise<Map<string, AuthorInfo>> {
   const uniqueIds = [...new Set(userIds)]
 
   if (uniqueIds.length === 0) {
@@ -25,7 +30,7 @@ async function resolveAuthorNames(
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name')
+    .select('id, name, avatar_url')
     .in('id', uniqueIds)
 
   if (error) {
@@ -35,20 +40,24 @@ async function resolveAuthorNames(
   return new Map(
     (data ?? []).map((profile) => [
       profile.id,
-      getCommentAuthorLabel(profile.id, profile.name),
+      {
+        name: getCommentAuthorLabel(profile.id, profile.name),
+        avatarUrl: profile.avatar_url ?? null,
+      },
     ]),
   )
 }
 
 function mapComment(
   row: CommentRow,
-  authorNames: Map<string, string>,
+  authors: Map<string, AuthorInfo>,
 ): Comment {
+  const author = authors.get(row.user_id)
+
   return {
     ...row,
-    author_name:
-      authorNames.get(row.user_id) ??
-      getCommentAuthorLabel(row.user_id, null),
+    author_name: author?.name ?? getCommentAuthorLabel(row.user_id, null),
+    author_avatar_url: author?.avatarUrl ?? null,
   }
 }
 
@@ -66,9 +75,9 @@ export async function fetchCommentsByTaskId(
   }
 
   const rows = data ?? []
-  const authorNames = await resolveAuthorNames(rows.map((row) => row.user_id))
+  const authors = await resolveAuthors(rows.map((row) => row.user_id))
 
-  return rows.map((row) => mapComment(row, authorNames))
+  return rows.map((row) => mapComment(row, authors))
 }
 
 export async function createComment(
@@ -108,9 +117,9 @@ export async function createComment(
     throw error
   }
 
-  const authorNames = await resolveAuthorNames([user.id])
+  const authors = await resolveAuthors([user.id])
 
-  return mapComment(data, authorNames)
+  return mapComment(data, authors)
 }
 
 export async function deleteComment(commentId: string): Promise<void> {

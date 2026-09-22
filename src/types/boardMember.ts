@@ -4,6 +4,7 @@ export type BoardMember = {
   user_id: string
   role: 'owner' | 'member'
   name: string | null
+  avatar_url: string | null
 }
 
 export function getMemberDisplayName(member: BoardMember): string {

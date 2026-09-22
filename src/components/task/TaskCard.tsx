@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState, type MouseEvent } from 'react'
+import { UserAvatar } from '../shared/UserAvatar'
 import { useNotification } from '../../providers/NotificationProvider'
 import { TASK_PRIORITY_LABELS, type Task } from '../../types/task'
 import { getErrorMessage } from '../../utils/getErrorMessage'
@@ -9,6 +10,7 @@ import styles from './TaskCard.module.css'
 type TaskCardProps = {
   task: Task
   assigneeLabel: string | null
+  assigneeAvatarUrl: string | null
   onOpen: (task: Task) => void
   onDelete: (taskId: string) => Promise<void>
 }
@@ -16,6 +18,7 @@ type TaskCardProps = {
 export function TaskCard({
   task,
   assigneeLabel,
+  assigneeAvatarUrl,
   onOpen,
   onDelete,
 }: TaskCardProps) {
@@ -95,7 +98,14 @@ export function TaskCard({
             <span className={styles.dueDate}>{task.due_date}</span>
           ) : null}
           {assigneeLabel ? (
-            <span className={styles.assignee}>{assigneeLabel}</span>
+            <span className={styles.assignee}>
+              <UserAvatar
+                name={assigneeLabel}
+                avatarUrl={assigneeAvatarUrl}
+                size="sm"
+              />
+              <span className={styles.assigneeName}>{assigneeLabel}</span>
+            </span>
           ) : null}
         </div>
       </div>

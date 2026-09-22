@@ -77,11 +77,21 @@
 }
 
 .assignee {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.7rem;
   color: #374151;
   background: #e5e7eb;
   border-radius: 999px;
-  padding: 0.1rem 0.4rem;
+  padding: 0.1rem 0.4rem 0.1rem 0.15rem;
+}
+
+.assigneeName {
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dragHandle {

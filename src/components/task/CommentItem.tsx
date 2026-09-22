@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { UserAvatar } from '../shared/UserAvatar'
 import { useNotification } from '../../providers/NotificationProvider'
 import type { Comment } from '../../types/comment'
 import { formatDateTime } from '../../utils/formatDateTime'
@@ -39,11 +40,18 @@ export function CommentItem({
 
   return (
     <li className={styles.item}>
-      <div className={styles.meta}>
-        <span className={styles.author}>{comment.author_name}</span>
-        <time className={styles.time} dateTime={comment.created_at}>
-          {formatDateTime(comment.created_at)}
-        </time>
+      <div className={styles.header}>
+        <UserAvatar
+          name={comment.author_name}
+          avatarUrl={comment.author_avatar_url}
+          size="md"
+        />
+        <div className={styles.meta}>
+          <span className={styles.author}>{comment.author_name}</span>
+          <time className={styles.time} dateTime={comment.created_at}>
+            {formatDateTime(comment.created_at)}
+          </time>
+        </div>
       </div>
       <p className={styles.content}>{comment.content}</p>
       {canDelete ? (

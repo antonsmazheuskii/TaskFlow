@@ -9,12 +9,20 @@
   background: #f9fafb;
 }
 
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
 .meta {
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 0.35rem 0.75rem;
+  min-width: 0;
 }
 
 .author {

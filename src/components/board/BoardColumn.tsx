@@ -23,6 +23,7 @@ type BoardColumnProps = {
   onOpenTask: (task: Task) => void
   onDeleteTask: (taskId: string) => Promise<void>
   getAssigneeLabel: (assigneeId: string | null) => string | null
+  getAssigneeAvatarUrl: (assigneeId: string | null) => string | null
 }
 
 export function BoardColumn({
@@ -35,6 +36,7 @@ export function BoardColumn({
   onOpenTask,
   onDeleteTask,
   getAssigneeLabel,
+  getAssigneeAvatarUrl,
 }: BoardColumnProps) {
   const { notifyError, notifySuccess } = useNotification()
   const [isEditing, setIsEditing] = useState(false)
@@ -189,6 +191,7 @@ export function BoardColumn({
               key={task.id}
               task={task}
               assigneeLabel={getAssigneeLabel(task.assignee_id)}
+              assigneeAvatarUrl={getAssigneeAvatarUrl(task.assignee_id)}
               onOpen={onOpenTask}
               onDelete={onDeleteTask}
             />
