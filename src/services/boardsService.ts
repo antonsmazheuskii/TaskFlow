@@ -1,3 +1,4 @@
+import { createDefaultColumns } from './columnsService'
 import { supabase } from './supabaseClient'
 import type { Board } from '../types/board'
 
@@ -67,6 +68,13 @@ export async function createBoard(title: string): Promise<Board> {
   if (memberError) {
     await supabase.from('boards').delete().eq('id', board.id)
     throw memberError
+  }
+
+  try {
+    await createDefaultColumns(board.id)
+  } catch (columnsError) {
+    await supabase.from('boards').delete().eq('id', board.id)
+    throw columnsError
   }
 
   return board

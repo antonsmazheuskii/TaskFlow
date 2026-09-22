@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { BoardColumns } from '../components/board/BoardColumns'
 import { useBoard } from '../hooks/useBoard'
 import styles from './BoardPage.module.css'
 
@@ -35,6 +36,10 @@ export function BoardPage() {
         </Link>
         <h1 className={styles.title}>{board.title}</h1>
       </header>
+
+      <section className={styles.columns}>
+        <BoardColumns boardId={board.id} />
+      </section>
     </main>
   )
 }
