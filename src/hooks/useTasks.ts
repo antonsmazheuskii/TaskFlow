@@ -13,6 +13,7 @@ type UseTasksResult = {
   tasks: Task[]
   isLoading: boolean
   error: string | null
+  refetch: () => Promise<void>
   createTask: (columnId: string, title: string) => Promise<void>
   updateTaskDetails: (
     taskId: string,
@@ -82,6 +83,24 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
       isMounted = false
     }
   }, [boardId])
+
+  async function refetch() {
+    if (!boardId) {
+      setTasks([])
+      setError(null)
+      return
+    }
+
+    try {
+      const data = await fetchTasksByBoardId(boardId)
+      setTasks(data)
+      setError(null)
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Не удалось загрузить задачи.'
+      setError(message)
+    }
+  }
 
   async function createTask(columnId: string, title: string) {
     const task = await createTaskRequest(columnId, title)
@@ -229,6 +248,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     tasks,
     isLoading,
     error,
+    refetch,
     createTask,
     updateTaskDetails,
     moveTaskToColumn,

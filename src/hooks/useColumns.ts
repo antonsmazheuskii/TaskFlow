@@ -11,6 +11,7 @@ type UseColumnsResult = {
   columns: Column[]
   isLoading: boolean
   error: string | null
+  refetch: () => Promise<void>
   createColumn: (title: string) => Promise<void>
   renameColumn: (columnId: string, title: string) => Promise<void>
   deleteColumn: (columnId: string) => Promise<void>
@@ -21,14 +22,42 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  async function loadColumns(options?: { silent?: boolean }) {
+    if (!boardId) {
+      setColumns([])
+      setError(null)
+      setIsLoading(false)
+      return
+    }
+
+    if (!options?.silent) {
+      setIsLoading(true)
+    }
+
+    setError(null)
+
+    try {
+      const data = await fetchColumnsByBoardId(boardId)
+      setColumns(data)
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Не удалось загрузить колонки.'
+      setError(message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
     let isMounted = true
 
-    async function loadColumns() {
+    async function initialLoad() {
       if (!boardId) {
-        setColumns([])
-        setError(null)
-        setIsLoading(false)
+        if (isMounted) {
+          setColumns([])
+          setError(null)
+          setIsLoading(false)
+        }
         return
       }
 
@@ -58,12 +87,16 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
       }
     }
 
-    void loadColumns()
+    void initialLoad()
 
     return () => {
       isMounted = false
     }
   }, [boardId])
+
+  async function refetch() {
+    await loadColumns({ silent: true })
+  }
 
   async function createColumn(title: string) {
     if (!boardId) {
@@ -90,6 +123,7 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
     columns,
     isLoading,
     error,
+    refetch,
     createColumn,
     renameColumn,
     deleteColumn,

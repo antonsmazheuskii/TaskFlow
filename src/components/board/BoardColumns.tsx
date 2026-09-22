@@ -10,6 +10,7 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import { useColumns } from '../../hooks/useColumns'
 import { useBoardMembers } from '../../hooks/useBoardMembers'
+import { useBoardRealtime } from '../../hooks/useBoardRealtime'
 import { useTasks } from '../../hooks/useTasks'
 import { useNotification } from '../../providers/NotificationProvider'
 import {
@@ -39,6 +40,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     columns,
     isLoading: isColumnsLoading,
     error: columnsError,
+    refetch: refetchColumns,
     createColumn,
     renameColumn,
     deleteColumn,
@@ -48,6 +50,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     tasks,
     isLoading: isTasksLoading,
     error: tasksError,
+    refetch: refetchTasks,
     createTask,
     updateTaskDetails,
     moveTaskToColumn,
@@ -90,6 +93,15 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
         distance: 6,
       },
     }),
+  )
+
+  useBoardRealtime(
+    boardId,
+    columns.map((column) => column.id),
+    () => {
+      void refetchColumns()
+      void refetchTasks()
+    },
   )
 
   useEffect(() => {
