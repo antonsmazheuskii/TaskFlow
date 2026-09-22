@@ -7,6 +7,10 @@ import { Skeleton } from '../components/shared/Skeleton'
 import { useBoard } from '../hooks/useBoard'
 import { useAuth } from '../providers/AuthProvider'
 import { useNotification } from '../providers/NotificationProvider'
+import {
+  BOARD_ROLE_LABELS,
+  getBoardPermissions,
+} from '../types/permissions'
 import styles from './BoardPage.module.css'
 
 export function BoardPage() {
@@ -49,14 +53,27 @@ export function BoardPage() {
     )
   }
 
-  const isOwner = user?.id === board.owner_id
+  const role = user?.id === board.owner_id ? 'owner' : 'member'
+  const permissions = getBoardPermissions(role)
 
   return (
     <main className={styles.page}>
-      <AppHeader breadcrumbs={[{ label: board.title }]} />
+      <AppHeader
+        breadcrumbs={[
+          {
+            label: `${board.title} · ${BOARD_ROLE_LABELS[role]}`,
+          },
+        ]}
+      />
+
+      {!permissions.canManageColumns ? (
+        <p className={styles.roleHint}>
+          Роль Member: просмотр доски и редактирование задач.
+        </p>
+      ) : null}
 
       <section className={styles.columns} aria-label={`Доска ${board.title}`}>
-        <BoardColumns boardId={board.id} isOwner={isOwner} />
+        <BoardColumns boardId={board.id} ownerId={board.owner_id} />
       </section>
     </main>
   )

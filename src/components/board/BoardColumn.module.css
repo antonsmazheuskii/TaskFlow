@@ -34,6 +34,16 @@
   word-break: break-word;
 }
 
+.title {
+  flex: 1;
+  margin: 0;
+  padding: 0.15rem 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  word-break: break-word;
+}
+
 .titleButton:hover:not(:disabled) {
   background: #f3f4f6;
 }

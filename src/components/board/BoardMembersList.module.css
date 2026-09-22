@@ -1,0 +1,53 @@
+.section {
+  width: 100%;
+  max-width: var(--board-header-max);
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.name {
+  font-size: 0.8rem;
+  color: #111827;
+}
+
+.roleOwner,
+.roleMember {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.roleOwner {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.roleMember {
+  background: #f3f4f6;
+  color: #4b5563;
+}

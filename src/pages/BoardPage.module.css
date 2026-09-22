@@ -27,6 +27,14 @@
   margin: 0 auto 1rem;
 }
 
+.roleHint {
+  max-width: var(--board-header-max);
+  width: 100%;
+  margin: 0 auto 0.75rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
 .columns {
   flex: 1;
   width: 100%;

@@ -16,6 +16,7 @@ import styles from './BoardColumn.module.css'
 type BoardColumnProps = {
   column: Column
   tasks: Task[]
+  canManageColumns: boolean
   onRename: (columnId: string, title: string) => Promise<void>
   onDelete: (columnId: string) => Promise<void>
   onCreateTask: (columnId: string, title: string) => Promise<void>
@@ -27,6 +28,7 @@ type BoardColumnProps = {
 export function BoardColumn({
   column,
   tasks,
+  canManageColumns,
   onRename,
   onDelete,
   onCreateTask,
@@ -49,6 +51,10 @@ export function BoardColumn({
   })
 
   function startEditing() {
+    if (!canManageColumns) {
+      return
+    }
+
     setDraftTitle(column.title)
     setIsEditing(true)
   }
@@ -126,7 +132,7 @@ export function BoardColumn({
   return (
     <section className={styles.column}>
       <div className={styles.header}>
-        {isEditing ? (
+        {canManageColumns && isEditing ? (
           <form className={styles.renameForm} onSubmit={handleSubmit}>
             <input
               className={styles.renameInput}
@@ -147,7 +153,7 @@ export function BoardColumn({
               {isSaving ? '…' : 'OK'}
             </button>
           </form>
-        ) : (
+        ) : canManageColumns ? (
           <button
             className={styles.titleButton}
             type="button"
@@ -156,17 +162,21 @@ export function BoardColumn({
           >
             {column.title}
           </button>
+        ) : (
+          <h3 className={styles.title}>{column.title}</h3>
         )}
 
-        <button
-          className={styles.delete}
-          type="button"
-          onClick={handleDelete}
-          disabled={isDeleting || isSaving}
-          aria-label={`Удалить колонку ${column.title}`}
-        >
-          {isDeleting ? '…' : '×'}
-        </button>
+        {canManageColumns ? (
+          <button
+            className={styles.delete}
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting || isSaving}
+            aria-label={`Удалить колонку ${column.title}`}
+          >
+            {isDeleting ? '…' : '×'}
+          </button>
+        ) : null}
       </div>
 
       <div ref={setNodeRef} className={tasksClassName}>

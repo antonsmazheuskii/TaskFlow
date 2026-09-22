@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useAuth } from '../../providers/AuthProvider'
 import { useNotification } from '../../providers/NotificationProvider'
 import type { Board } from '../../types/board'
 import { BoardListItem } from './BoardListItem'
@@ -18,6 +19,7 @@ export function BoardsList({
   error,
   onDelete,
 }: BoardsListProps) {
+  const { user } = useAuth()
   const { notifyError } = useNotification()
 
   useEffect(() => {
@@ -45,7 +47,12 @@ export function BoardsList({
   return (
     <ul className={styles.list}>
       {boards.map((board) => (
-        <BoardListItem key={board.id} board={board} onDelete={onDelete} />
+        <BoardListItem
+          key={board.id}
+          board={board}
+          canDelete={user?.id === board.owner_id}
+          onDelete={onDelete}
+        />
       ))}
     </ul>
   )

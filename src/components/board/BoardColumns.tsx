@@ -12,33 +12,37 @@ import { useColumns } from '../../hooks/useColumns'
 import { useBoardMembers } from '../../hooks/useBoardMembers'
 import { useBoardRealtime } from '../../hooks/useBoardRealtime'
 import { useTasks } from '../../hooks/useTasks'
+import { useAuth } from '../../providers/AuthProvider'
 import { useNotification } from '../../providers/NotificationProvider'
 import {
   getMemberDisplayName,
 } from '../../types/boardMember'
+import {
+  getBoardPermissions,
+  type BoardRole,
+} from '../../types/permissions'
 import type { Task } from '../../types/task'
 import { parseColumnDroppableId } from '../../utils/dndIds'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import { TaskDetailsModal } from '../task/TaskDetailsModal'
 import { BoardColumn } from './BoardColumn'
 import { BoardColumnsSkeleton } from './BoardColumnsSkeleton'
+import { BoardMembersList } from './BoardMembersList'
 import { CreateColumnForm } from './CreateColumnForm'
 import { InviteBoardMemberForm } from './InviteBoardMemberForm'
 import styles from './BoardColumns.module.css'
 
 type BoardColumnsProps = {
   boardId: string
-  isOwner?: boolean
+  ownerId: string
 }
 
 function sortByPosition<T extends { position: number }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.position - b.position)
 }
 
-export function BoardColumns({
-  boardId,
-  isOwner = false,
-}: BoardColumnsProps) {
+export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
+  const { user } = useAuth()
   const { notifyError } = useNotification()
 
   const {
@@ -83,6 +87,18 @@ export function BoardColumns({
   const membersById = new Map(
     members.map((member) => [member.user_id, member]),
   )
+
+  const membership = user
+    ? members.find((member) => member.user_id === user.id)
+    : undefined
+
+  const role: BoardRole | null = membership
+    ? (membership.role as BoardRole)
+    : user?.id === ownerId
+      ? 'owner'
+      : null
+
+  const permissions = getBoardPermissions(role)
 
   function getAssigneeLabel(assigneeId: string | null): string | null {
     if (!assigneeId) {
@@ -140,12 +156,6 @@ export function BoardColumns({
     }
   }, [membersError, notifyError])
 
-  useEffect(() => {
-    if (selectedTaskId && !tasks.some((task) => task.id === selectedTaskId)) {
-      setSelectedTaskId(null)
-    }
-  }, [selectedTaskId, tasks])
-
   function handleOpenTask(task: Task) {
     setSelectedTaskId(task.id)
   }
@@ -153,18 +163,23 @@ export function BoardColumns({
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
 
-    if (!over) {
+    if (!over || !permissions.canEditTasks) {
       return
     }
 
     const taskId = String(active.id)
+    const overId = String(over.id)
+
+    if (taskId === overId) {
+      return
+    }
+
     const activeTask = tasks.find((task) => task.id === taskId)
 
     if (!activeTask) {
       return
     }
 
-    const overId = String(over.id)
     const overColumnId =
       parseColumnDroppableId(overId) ??
       tasks.find((task) => task.id === overId)?.column_id ??
@@ -175,28 +190,22 @@ export function BoardColumns({
     }
 
     try {
-      if (overColumnId === activeTask.column_id) {
+      if (activeTask.column_id === overColumnId) {
         const columnTasks = sortByPosition(
           tasks.filter((task) => task.column_id === overColumnId),
         )
         const oldIndex = columnTasks.findIndex((task) => task.id === taskId)
-
-        if (oldIndex < 0) {
-          return
-        }
-
         const newIndex = parseColumnDroppableId(overId)
           ? columnTasks.length - 1
           : columnTasks.findIndex((task) => task.id === overId)
 
-        if (newIndex < 0 || oldIndex === newIndex) {
+        if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) {
           return
         }
 
-        const reordered = arrayMove(columnTasks, oldIndex, newIndex)
         await reorderTasksInColumn(
           overColumnId,
-          reordered.map((task) => task.id),
+          arrayMove(columnTasks, oldIndex, newIndex).map((task) => task.id),
         )
         return
       }
@@ -232,7 +241,9 @@ export function BoardColumns({
 
   return (
     <div className={styles.wrapper}>
-      {isOwner ? (
+      <BoardMembersList members={members} currentUserId={user?.id} />
+
+      {permissions.canInviteMembers ? (
         <div className={styles.invite}>
           <InviteBoardMemberForm onInvite={inviteByEmail} />
         </div>
@@ -251,6 +262,7 @@ export function BoardColumns({
               tasks={sortByPosition(
                 tasks.filter((task) => task.column_id === column.id),
               )}
+              canManageColumns={permissions.canManageColumns}
               onRename={renameColumn}
               onDelete={deleteColumn}
               onCreateTask={createTask}
@@ -259,7 +271,9 @@ export function BoardColumns({
               getAssigneeLabel={getAssigneeLabel}
             />
           ))}
-          <CreateColumnForm onCreate={createColumn} />
+          {permissions.canManageColumns ? (
+            <CreateColumnForm onCreate={createColumn} />
+          ) : null}
         </div>
       </DndContext>
 

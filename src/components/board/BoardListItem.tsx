@@ -7,16 +7,25 @@ import styles from './BoardListItem.module.css'
 
 type BoardListItemProps = {
   board: Board
+  canDelete: boolean
   onDelete: (boardId: string) => Promise<void>
 }
 
-export function BoardListItem({ board, onDelete }: BoardListItemProps) {
+export function BoardListItem({
+  board,
+  canDelete,
+  onDelete,
+}: BoardListItemProps) {
   const { notifyError, notifySuccess } = useNotification()
   const [isDeleting, setIsDeleting] = useState(false)
 
   async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     event.stopPropagation()
+
+    if (!canDelete) {
+      return
+    }
 
     const confirmed = window.confirm(
       `Удалить доску «${board.title}»? Это действие нельзя отменить.`,
@@ -43,14 +52,18 @@ export function BoardListItem({ board, onDelete }: BoardListItemProps) {
         <Link className={styles.title} to={`/boards/${board.id}`}>
           {board.title}
         </Link>
-        <button
-          className={styles.delete}
-          type="button"
-          onClick={handleDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? 'Удаление…' : 'Удалить'}
-        </button>
+        {canDelete ? (
+          <button
+            className={styles.delete}
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Удаление…' : 'Удалить'}
+          </button>
+        ) : (
+          <span className={styles.role}>Member</span>
+        )}
       </div>
     </li>
   )

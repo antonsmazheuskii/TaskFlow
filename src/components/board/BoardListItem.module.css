@@ -47,6 +47,17 @@
   cursor: not-allowed;
 }
 
+.role {
+  flex-shrink: 0;
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+}
+
 .error {
   margin: 0.5rem 0 0;
   color: #b91c1c;
