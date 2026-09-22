@@ -1,4 +1,5 @@
 import { useColumns } from '../../hooks/useColumns'
+import { useTasks } from '../../hooks/useTasks'
 import { BoardColumn } from './BoardColumn'
 import { CreateColumnForm } from './CreateColumnForm'
 import styles from './BoardColumns.module.css'
@@ -10,21 +11,28 @@ type BoardColumnsProps = {
 export function BoardColumns({ boardId }: BoardColumnsProps) {
   const {
     columns,
-    isLoading,
-    error,
+    isLoading: isColumnsLoading,
+    error: columnsError,
     createColumn,
     renameColumn,
     deleteColumn,
   } = useColumns(boardId)
 
-  if (isLoading) {
-    return <p className={styles.status}>Загрузка колонок…</p>
+  const {
+    tasks,
+    isLoading: isTasksLoading,
+    error: tasksError,
+    createTask,
+  } = useTasks(boardId)
+
+  if (isColumnsLoading || isTasksLoading) {
+    return <p className={styles.status}>Загрузка доски…</p>
   }
 
-  if (error) {
+  if (columnsError || tasksError) {
     return (
       <p className={styles.error} role="alert">
-        {error}
+        {columnsError ?? tasksError}
       </p>
     )
   }
@@ -35,8 +43,10 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
         <BoardColumn
           key={column.id}
           column={column}
+          tasks={tasks.filter((task) => task.column_id === column.id)}
           onRename={renameColumn}
           onDelete={deleteColumn}
+          onCreateTask={createTask}
         />
       ))}
       <CreateColumnForm onCreate={createColumn} />

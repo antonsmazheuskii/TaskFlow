@@ -1,14 +1,25 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { CreateTaskForm } from '../task/CreateTaskForm'
+import { TaskCard } from '../task/TaskCard'
 import type { Column } from '../../types/column'
+import type { Task } from '../../types/task'
 import styles from './BoardColumn.module.css'
 
 type BoardColumnProps = {
   column: Column
+  tasks: Task[]
   onRename: (columnId: string, title: string) => Promise<void>
   onDelete: (columnId: string) => Promise<void>
+  onCreateTask: (columnId: string, title: string) => Promise<void>
 }
 
-export function BoardColumn({ column, onRename, onDelete }: BoardColumnProps) {
+export function BoardColumn({
+  column,
+  tasks,
+  onRename,
+  onDelete,
+  onCreateTask,
+}: BoardColumnProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(column.title)
   const [isSaving, setIsSaving] = useState(false)
@@ -89,6 +100,10 @@ export function BoardColumn({ column, onRename, onDelete }: BoardColumnProps) {
     }
   }
 
+  async function handleCreateTask(title: string) {
+    await onCreateTask(column.id, title)
+  }
+
   return (
     <section className={styles.column}>
       <div className={styles.header}>
@@ -140,6 +155,14 @@ export function BoardColumn({ column, onRename, onDelete }: BoardColumnProps) {
           {error}
         </p>
       ) : null}
+
+      <div className={styles.tasks}>
+        {tasks.map((task) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+      </div>
+
+      <CreateTaskForm onCreate={handleCreateTask} />
     </section>
   )
 }
