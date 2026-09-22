@@ -1,8 +1,10 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useDroppable } from '@dnd-kit/core'
 import { CreateTaskForm } from '../task/CreateTaskForm'
 import { TaskCard } from '../task/TaskCard'
 import type { Column } from '../../types/column'
 import type { Task } from '../../types/task'
+import { getColumnDroppableId } from '../../utils/dndIds'
 import styles from './BoardColumn.module.css'
 
 type BoardColumnProps = {
@@ -25,6 +27,14 @@ export function BoardColumn({
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: getColumnDroppableId(column.id),
+    data: {
+      type: 'column',
+      columnId: column.id,
+    },
+  })
 
   function startEditing() {
     setDraftTitle(column.title)
@@ -104,6 +114,10 @@ export function BoardColumn({
     await onCreateTask(column.id, title)
   }
 
+  const tasksClassName = isOver
+    ? `${styles.tasks} ${styles.tasksOver}`
+    : styles.tasks
+
   return (
     <section className={styles.column}>
       <div className={styles.header}>
@@ -156,7 +170,7 @@ export function BoardColumn({
         </p>
       ) : null}
 
-      <div className={styles.tasks}>
+      <div ref={setNodeRef} className={tasksClassName}>
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} />
         ))}

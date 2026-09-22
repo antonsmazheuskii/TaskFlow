@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   createTask as createTaskRequest,
   fetchTasksByBoardId,
+  moveTaskToColumn as moveTaskToColumnRequest,
 } from '../services/tasksService'
 import type { Task } from '../types/task'
 
@@ -10,6 +11,7 @@ type UseTasksResult = {
   isLoading: boolean
   error: string | null
   createTask: (columnId: string, title: string) => Promise<void>
+  moveTaskToColumn: (taskId: string, targetColumnId: string) => Promise<void>
 }
 
 export function useTasks(boardId: string | undefined): UseTasksResult {
@@ -66,5 +68,40 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     setTasks((current) => [...current, task])
   }
 
-  return { tasks, isLoading, error, createTask }
+  async function moveTaskToColumn(taskId: string, targetColumnId: string) {
+    const previousTasks = tasks
+    const movingTask = tasks.find((task) => task.id === taskId)
+
+    if (!movingTask || movingTask.column_id === targetColumnId) {
+      return
+    }
+
+    const targetTasks = tasks.filter(
+      (task) => task.column_id === targetColumnId && task.id !== taskId,
+    )
+    const nextPosition =
+      targetTasks.length > 0
+        ? Math.max(...targetTasks.map((task) => task.position)) + 1
+        : 0
+
+    setTasks((current) =>
+      current.map((task) =>
+        task.id === taskId
+          ? { ...task, column_id: targetColumnId, position: nextPosition }
+          : task,
+      ),
+    )
+
+    try {
+      const updatedTask = await moveTaskToColumnRequest(taskId, targetColumnId)
+      setTasks((current) =>
+        current.map((task) => (task.id === taskId ? updatedTask : task)),
+      )
+    } catch (err) {
+      setTasks(previousTasks)
+      throw err
+    }
+  }
+
+  return { tasks, isLoading, error, createTask, moveTaskToColumn }
 }

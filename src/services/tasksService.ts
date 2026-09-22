@@ -86,3 +86,38 @@ export async function createTask(
 
   return data
 }
+
+export async function moveTaskToColumn(
+  taskId: string,
+  targetColumnId: string,
+): Promise<Task> {
+  const { data: existing, error: existingError } = await supabase
+    .from('tasks')
+    .select('position')
+    .eq('column_id', targetColumnId)
+    .order('position', { ascending: false })
+    .limit(1)
+
+  if (existingError) {
+    throw existingError
+  }
+
+  const nextPosition =
+    existing && existing.length > 0 ? existing[0].position + 1 : 0
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({
+      column_id: targetColumnId,
+      position: nextPosition,
+    })
+    .eq('id', taskId)
+    .select(TASK_SELECT)
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
