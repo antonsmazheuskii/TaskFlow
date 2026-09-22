@@ -6,9 +6,11 @@ import {
 } from '@dnd-kit/sortable'
 import { CreateTaskForm } from '../task/CreateTaskForm'
 import { TaskCard } from '../task/TaskCard'
+import { useNotification } from '../../providers/NotificationProvider'
 import type { Column } from '../../types/column'
 import type { Task } from '../../types/task'
 import { getColumnDroppableId } from '../../utils/dndIds'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './BoardColumn.module.css'
 
 type BoardColumnProps = {
@@ -28,11 +30,11 @@ export function BoardColumn({
   onCreateTask,
   onDeleteTask,
 }: BoardColumnProps) {
+  const { notifyError, notifySuccess } = useNotification()
   const [isEditing, setIsEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(column.title)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const { setNodeRef, isOver } = useDroppable({
     id: getColumnDroppableId(column.id),
@@ -44,13 +46,11 @@ export function BoardColumn({
 
   function startEditing() {
     setDraftTitle(column.title)
-    setError(null)
     setIsEditing(true)
   }
 
   function cancelEditing() {
     setDraftTitle(column.title)
-    setError(null)
     setIsEditing(false)
   }
 
@@ -58,7 +58,7 @@ export function BoardColumn({
     const trimmedTitle = draftTitle.trim()
 
     if (!trimmedTitle) {
-      setError('Введите название колонки.')
+      notifyError('Введите название колонки.')
       return
     }
 
@@ -68,15 +68,12 @@ export function BoardColumn({
     }
 
     setIsSaving(true)
-    setError(null)
 
     try {
       await onRename(column.id, trimmedTitle)
       setIsEditing(false)
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось переименовать колонку.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось переименовать колонку.'))
     } finally {
       setIsSaving(false)
     }
@@ -103,15 +100,13 @@ export function BoardColumn({
       return
     }
 
-    setError(null)
     setIsDeleting(true)
 
     try {
       await onDelete(column.id)
+      notifySuccess('Колонка удалена.')
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось удалить колонку.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось удалить колонку.'))
       setIsDeleting(false)
     }
   }
@@ -169,12 +164,6 @@ export function BoardColumn({
           {isDeleting ? '…' : '×'}
         </button>
       </div>
-
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
 
       <div ref={setNodeRef} className={tasksClassName}>
         <SortableContext

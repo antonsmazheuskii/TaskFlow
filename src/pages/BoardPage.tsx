@@ -1,14 +1,23 @@
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BoardColumns } from '../components/board/BoardColumns'
 import { BoardColumnsSkeleton } from '../components/board/BoardColumnsSkeleton'
 import { AppHeader } from '../components/shared/AppHeader'
 import { Skeleton } from '../components/shared/Skeleton'
 import { useBoard } from '../hooks/useBoard'
+import { useNotification } from '../providers/NotificationProvider'
 import styles from './BoardPage.module.css'
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>()
   const { board, isLoading, error } = useBoard(boardId)
+  const { notifyError } = useNotification()
+
+  useEffect(() => {
+    if (error) {
+      notifyError(error)
+    }
+  }, [error, notifyError])
 
   if (isLoading) {
     return (

@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { useNotification } from '../../providers/NotificationProvider'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './CreateBoardForm.module.css'
 
 type CreateBoardFormProps = {
@@ -6,18 +8,17 @@ type CreateBoardFormProps = {
 }
 
 export function CreateBoardForm({ onCreate }: CreateBoardFormProps) {
+  const { notifyError, notifySuccess } = useNotification()
   const [title, setTitle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
 
     const trimmedTitle = title.trim()
 
     if (!trimmedTitle) {
-      setError('Введите название доски.')
+      notifyError('Введите название доски.')
       return
     }
 
@@ -26,10 +27,9 @@ export function CreateBoardForm({ onCreate }: CreateBoardFormProps) {
     try {
       await onCreate(trimmedTitle)
       setTitle('')
+      notifySuccess('Доска создана.')
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось создать доску.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось создать доску.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -51,11 +51,6 @@ export function CreateBoardForm({ onCreate }: CreateBoardFormProps) {
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Создание…' : 'Создать'}
       </button>
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
     </form>
   )
 }

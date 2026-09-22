@@ -1,6 +1,8 @@
 import { useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { useNotification } from '../../providers/NotificationProvider'
 import type { Board } from '../../types/board'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './BoardListItem.module.css'
 
 type BoardListItemProps = {
@@ -9,8 +11,8 @@ type BoardListItemProps = {
 }
 
 export function BoardListItem({ board, onDelete }: BoardListItemProps) {
+  const { notifyError, notifySuccess } = useNotification()
   const [isDeleting, setIsDeleting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
@@ -24,15 +26,13 @@ export function BoardListItem({ board, onDelete }: BoardListItemProps) {
       return
     }
 
-    setError(null)
     setIsDeleting(true)
 
     try {
       await onDelete(board.id)
+      notifySuccess('Доска удалена.')
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось удалить доску.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось удалить доску.'))
       setIsDeleting(false)
     }
   }
@@ -52,11 +52,6 @@ export function BoardListItem({ board, onDelete }: BoardListItemProps) {
           {isDeleting ? 'Удаление…' : 'Удалить'}
         </button>
       </div>
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
     </li>
   )
 }

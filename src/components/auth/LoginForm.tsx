@@ -1,15 +1,17 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useNotification } from '../../providers/NotificationProvider'
 import { signIn } from '../../services/authService'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './AuthForm.module.css'
 
 export function LoginForm() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { notifyError } = useNotification()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const redirectTo =
     (location.state as { from?: { pathname?: string } } | null)?.from
@@ -17,17 +19,16 @@ export function LoginForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
 
     const trimmedEmail = email.trim()
 
     if (!trimmedEmail) {
-      setError('Введите email.')
+      notifyError('Введите email.')
       return
     }
 
     if (!password) {
-      setError('Введите пароль.')
+      notifyError('Введите пароль.')
       return
     }
 
@@ -37,9 +38,7 @@ export function LoginForm() {
       await signIn({ email: trimmedEmail, password })
       navigate(redirectTo, { replace: true })
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось войти.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось войти.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -74,12 +73,6 @@ export function LoginForm() {
           required
         />
       </label>
-
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
 
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Вход…' : 'Войти'}

@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { useNotification } from '../../providers/NotificationProvider'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './CreateColumnForm.module.css'
 
 type CreateColumnFormProps = {
@@ -6,18 +8,17 @@ type CreateColumnFormProps = {
 }
 
 export function CreateColumnForm({ onCreate }: CreateColumnFormProps) {
+  const { notifyError } = useNotification()
   const [title, setTitle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
 
     const trimmedTitle = title.trim()
 
     if (!trimmedTitle) {
-      setError('Введите название колонки.')
+      notifyError('Введите название колонки.')
       return
     }
 
@@ -27,9 +28,7 @@ export function CreateColumnForm({ onCreate }: CreateColumnFormProps) {
       await onCreate(trimmedTitle)
       setTitle('')
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось создать колонку.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось создать колонку.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -51,11 +50,6 @@ export function CreateColumnForm({ onCreate }: CreateColumnFormProps) {
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Добавление…' : 'Добавить'}
       </button>
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
     </form>
   )
 }

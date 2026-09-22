@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { useNotification } from '../../providers/NotificationProvider'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './CreateTaskForm.module.css'
 
 type CreateTaskFormProps = {
@@ -6,18 +8,17 @@ type CreateTaskFormProps = {
 }
 
 export function CreateTaskForm({ onCreate }: CreateTaskFormProps) {
+  const { notifyError } = useNotification()
   const [title, setTitle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
 
     const trimmedTitle = title.trim()
 
     if (!trimmedTitle) {
-      setError('Введите название задачи.')
+      notifyError('Введите название задачи.')
       return
     }
 
@@ -27,9 +28,7 @@ export function CreateTaskForm({ onCreate }: CreateTaskFormProps) {
       await onCreate(trimmedTitle)
       setTitle('')
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось создать задачу.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось создать задачу.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -51,11 +50,6 @@ export function CreateTaskForm({ onCreate }: CreateTaskFormProps) {
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
         {isSubmitting ? '…' : '+'}
       </button>
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
     </form>
   )
 }

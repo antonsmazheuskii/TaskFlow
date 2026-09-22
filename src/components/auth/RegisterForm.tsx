@@ -1,36 +1,37 @@
 import { useState, type FormEvent } from 'react'
+import { useNotification } from '../../providers/NotificationProvider'
 import { signUp } from '../../services/authService'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './AuthForm.module.css'
 
 const MIN_PASSWORD_LENGTH = 6
 
 export function RegisterForm() {
+  const { notifyError, notifySuccess } = useNotification()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
-    setSuccessMessage(null)
 
     const trimmedEmail = email.trim()
 
     if (!trimmedEmail) {
-      setError('Введите email.')
+      notifyError('Введите email.')
       return
     }
 
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Пароль должен быть не короче ${MIN_PASSWORD_LENGTH} символов.`)
+      notifyError(
+        `Пароль должен быть не короче ${MIN_PASSWORD_LENGTH} символов.`,
+      )
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Пароли не совпадают.')
+      notifyError('Пароли не совпадают.')
       return
     }
 
@@ -40,9 +41,9 @@ export function RegisterForm() {
       const data = await signUp({ email: trimmedEmail, password })
 
       if (data.session) {
-        setSuccessMessage('Регистрация прошла успешно.')
+        notifySuccess('Регистрация прошла успешно.')
       } else {
-        setSuccessMessage(
+        notifySuccess(
           'Регистрация прошла успешно. Проверьте email для подтверждения аккаунта.',
         )
       }
@@ -51,9 +52,7 @@ export function RegisterForm() {
       setPassword('')
       setConfirmPassword('')
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось зарегистрироваться.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось зарегистрироваться.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -104,18 +103,6 @@ export function RegisterForm() {
           required
         />
       </label>
-
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      {successMessage ? (
-        <p className={styles.success} role="status">
-          {successMessage}
-        </p>
-      ) : null}
 
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Регистрация…' : 'Зарегистрироваться'}

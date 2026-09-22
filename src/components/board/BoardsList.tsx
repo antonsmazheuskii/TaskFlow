@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
+import { useNotification } from '../../providers/NotificationProvider'
+import type { Board } from '../../types/board'
 import { BoardListItem } from './BoardListItem'
 import { BoardsListSkeleton } from './BoardsListSkeleton'
-import type { Board } from '../../types/board'
 import styles from './BoardsList.module.css'
 
 type BoardsListProps = {
@@ -16,6 +18,14 @@ export function BoardsList({
   error,
   onDelete,
 }: BoardsListProps) {
+  const { notifyError } = useNotification()
+
+  useEffect(() => {
+    if (error) {
+      notifyError(error)
+    }
+  }, [error, notifyError])
+
   if (isLoading) {
     return <BoardsListSkeleton />
   }

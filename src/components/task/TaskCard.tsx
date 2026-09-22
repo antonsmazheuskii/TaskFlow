@@ -1,7 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState, type MouseEvent } from 'react'
+import { useNotification } from '../../providers/NotificationProvider'
 import type { Task } from '../../types/task'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './TaskCard.module.css'
 
 type TaskCardProps = {
@@ -10,8 +12,8 @@ type TaskCardProps = {
 }
 
 export function TaskCard({ task, onDelete }: TaskCardProps) {
+  const { notifyError, notifySuccess } = useNotification()
   const [isDeleting, setIsDeleting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const {
     attributes,
@@ -46,15 +48,13 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
       return
     }
 
-    setError(null)
     setIsDeleting(true)
 
     try {
       await onDelete(task.id)
+      notifySuccess('Задача удалена.')
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось удалить задачу.'
-      setError(message)
+      notifyError(getErrorMessage(err, 'Не удалось удалить задачу.'))
       setIsDeleting(false)
     }
   }
@@ -73,11 +73,6 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
       >
         {isDeleting ? '…' : '×'}
       </button>
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
     </article>
   )
 }

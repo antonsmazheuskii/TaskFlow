@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -10,7 +10,9 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import { useColumns } from '../../hooks/useColumns'
 import { useTasks } from '../../hooks/useTasks'
+import { useNotification } from '../../providers/NotificationProvider'
 import { parseColumnDroppableId } from '../../utils/dndIds'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 import { BoardColumn } from './BoardColumn'
 import { BoardColumnsSkeleton } from './BoardColumnsSkeleton'
 import { CreateColumnForm } from './CreateColumnForm'
@@ -25,6 +27,8 @@ function sortByPosition<T extends { position: number }>(items: T[]): T[] {
 }
 
 export function BoardColumns({ boardId }: BoardColumnsProps) {
+  const { notifyError } = useNotification()
+
   const {
     columns,
     isLoading: isColumnsLoading,
@@ -44,8 +48,6 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     deleteTask,
   } = useTasks(boardId)
 
-  const [dndError, setDndError] = useState<string | null>(null)
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -54,9 +56,20 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     }),
   )
 
+  useEffect(() => {
+    if (columnsError) {
+      notifyError(columnsError)
+    }
+  }, [columnsError, notifyError])
+
+  useEffect(() => {
+    if (tasksError) {
+      notifyError(tasksError)
+    }
+  }, [tasksError, notifyError])
+
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
-    setDndError(null)
 
     if (!over) {
       return
@@ -119,11 +132,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
         targetIndex < 0 ? targetTasks.length : targetIndex,
       )
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Не удалось обновить порядок задач.'
-      setDndError(message)
+      notifyError(getErrorMessage(err, 'Не удалось обновить порядок задач.'))
     }
   }
 
@@ -141,12 +150,6 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
 
   return (
     <div className={styles.wrapper}>
-      {dndError ? (
-        <p className={styles.error} role="alert">
-          {dndError}
-        </p>
-      ) : null}
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
