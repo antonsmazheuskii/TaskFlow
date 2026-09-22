@@ -23,7 +23,8 @@ drop policy if exists "Users can view their boards" on boards;
 create policy "Users can view their boards"
   on boards for select
   using (
-    id in (select board_id from board_members where user_id = auth.uid())
+    owner_id = auth.uid()
+    or id in (select board_id from board_members where user_id = auth.uid())
   );
 
 drop policy if exists "Users can create boards" on boards;
