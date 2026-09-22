@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
-import { fetchBoardMembers } from '../services/boardMembersService'
+import {
+  fetchBoardMembers,
+  inviteBoardMemberByEmail,
+} from '../services/boardMembersService'
 import type { BoardMember } from '../types/boardMember'
 
 type UseBoardMembersResult = {
   members: BoardMember[]
   isLoading: boolean
   error: string | null
+  inviteByEmail: (email: string) => Promise<void>
 }
 
 export function useBoardMembers(
@@ -61,5 +65,20 @@ export function useBoardMembers(
     }
   }, [boardId])
 
-  return { members, isLoading, error }
+  async function inviteByEmail(email: string) {
+    if (!boardId) {
+      throw new Error('Доска не найдена.')
+    }
+
+    const member = await inviteBoardMemberByEmail(boardId, email)
+    setMembers((current) => {
+      if (current.some((item) => item.user_id === member.user_id)) {
+        return current
+      }
+
+      return [...current, member]
+    })
+  }
+
+  return { members, isLoading, error, inviteByEmail }
 }

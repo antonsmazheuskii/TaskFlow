@@ -5,6 +5,15 @@
   min-width: 0;
 }
 
+.invite {
+  max-width: var(--board-header-max);
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
 .board {
   display: flex;
   gap: 0.75rem;

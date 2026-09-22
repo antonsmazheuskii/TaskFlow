@@ -23,17 +23,22 @@ import { TaskDetailsModal } from '../task/TaskDetailsModal'
 import { BoardColumn } from './BoardColumn'
 import { BoardColumnsSkeleton } from './BoardColumnsSkeleton'
 import { CreateColumnForm } from './CreateColumnForm'
+import { InviteBoardMemberForm } from './InviteBoardMemberForm'
 import styles from './BoardColumns.module.css'
 
 type BoardColumnsProps = {
   boardId: string
+  isOwner?: boolean
 }
 
 function sortByPosition<T extends { position: number }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.position - b.position)
 }
 
-export function BoardColumns({ boardId }: BoardColumnsProps) {
+export function BoardColumns({
+  boardId,
+  isOwner = false,
+}: BoardColumnsProps) {
   const { notifyError } = useNotification()
 
   const {
@@ -67,6 +72,7 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     members,
     isLoading: isMembersLoading,
     error: membersError,
+    inviteByEmail,
   } = useBoardMembers(boardId)
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
@@ -226,6 +232,12 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
 
   return (
     <div className={styles.wrapper}>
+      {isOwner ? (
+        <div className={styles.invite}>
+          <InviteBoardMemberForm onInvite={inviteByEmail} />
+        </div>
+      ) : null}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}

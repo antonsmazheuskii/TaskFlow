@@ -5,11 +5,13 @@ import { BoardColumnsSkeleton } from '../components/board/BoardColumnsSkeleton'
 import { AppHeader } from '../components/shared/AppHeader'
 import { Skeleton } from '../components/shared/Skeleton'
 import { useBoard } from '../hooks/useBoard'
+import { useAuth } from '../providers/AuthProvider'
 import { useNotification } from '../providers/NotificationProvider'
 import styles from './BoardPage.module.css'
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>()
+  const { user } = useAuth()
   const { board, isLoading, error } = useBoard(boardId)
   const { notifyError } = useNotification()
 
@@ -47,12 +49,14 @@ export function BoardPage() {
     )
   }
 
+  const isOwner = user?.id === board.owner_id
+
   return (
     <main className={styles.page}>
       <AppHeader breadcrumbs={[{ label: board.title }]} />
 
       <section className={styles.columns} aria-label={`Доска ${board.title}`}>
-        <BoardColumns boardId={board.id} />
+        <BoardColumns boardId={board.id} isOwner={isOwner} />
       </section>
     </main>
   )
