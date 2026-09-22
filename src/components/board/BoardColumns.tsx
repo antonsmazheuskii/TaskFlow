@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -11,8 +11,10 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useColumns } from '../../hooks/useColumns'
 import { useTasks } from '../../hooks/useTasks'
 import { useNotification } from '../../providers/NotificationProvider'
+import type { Task } from '../../types/task'
 import { parseColumnDroppableId } from '../../utils/dndIds'
 import { getErrorMessage } from '../../utils/getErrorMessage'
+import { TaskDetailsModal } from '../task/TaskDetailsModal'
 import { BoardColumn } from './BoardColumn'
 import { BoardColumnsSkeleton } from './BoardColumnsSkeleton'
 import { CreateColumnForm } from './CreateColumnForm'
@@ -48,6 +50,11 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
     deleteTask,
   } = useTasks(boardId)
 
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+
+  const selectedTask =
+    tasks.find((task) => task.id === selectedTaskId) ?? null
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -67,6 +74,16 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
       notifyError(tasksError)
     }
   }, [tasksError, notifyError])
+
+  useEffect(() => {
+    if (selectedTaskId && !tasks.some((task) => task.id === selectedTaskId)) {
+      setSelectedTaskId(null)
+    }
+  }, [selectedTaskId, tasks])
+
+  function handleOpenTask(task: Task) {
+    setSelectedTaskId(task.id)
+  }
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
@@ -166,12 +183,20 @@ export function BoardColumns({ boardId }: BoardColumnsProps) {
               onRename={renameColumn}
               onDelete={deleteColumn}
               onCreateTask={createTask}
+              onOpenTask={handleOpenTask}
               onDeleteTask={deleteTask}
             />
           ))}
           <CreateColumnForm onCreate={createColumn} />
         </div>
       </DndContext>
+
+      {selectedTask ? (
+        <TaskDetailsModal
+          task={selectedTask}
+          onClose={() => setSelectedTaskId(null)}
+        />
+      ) : null}
     </div>
   )
 }

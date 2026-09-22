@@ -8,10 +8,11 @@ import styles from './TaskCard.module.css'
 
 type TaskCardProps = {
   task: Task
+  onOpen: (task: Task) => void
   onDelete: (taskId: string) => Promise<void>
 }
 
-export function TaskCard({ task, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onOpen, onDelete }: TaskCardProps) {
   const { notifyError, notifySuccess } = useNotification()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -34,6 +35,14 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : undefined,
+  }
+
+  function handleOpen() {
+    if (isDragging) {
+      return
+    }
+
+    onOpen(task)
   }
 
   async function handleDelete(event: MouseEvent<HTMLButtonElement>) {
@@ -61,9 +70,26 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
 
   return (
     <article ref={setNodeRef} style={style} className={styles.card}>
-      <div className={styles.content} {...listeners} {...attributes}>
-        <p className={styles.title}>{task.title}</p>
-      </div>
+      <button
+        className={styles.open}
+        type="button"
+        onClick={handleOpen}
+        disabled={isDeleting}
+      >
+        {task.title}
+      </button>
+
+      <button
+        className={styles.dragHandle}
+        type="button"
+        aria-label={`Переместить задачу ${task.title}`}
+        disabled={isDeleting}
+        {...listeners}
+        {...attributes}
+      >
+        ⋮⋮
+      </button>
+
       <button
         className={styles.delete}
         type="button"

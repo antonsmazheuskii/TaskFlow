@@ -1,30 +1,65 @@
 .card {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.25rem 0.35rem;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.25rem;
   align-items: start;
-  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  padding: 0.45rem 0.4rem 0.45rem 0.55rem;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   background: #f9fafb;
 }
 
-.content {
-  cursor: grab;
-  touch-action: none;
-  min-width: 0;
-}
-
-.content:active {
-  cursor: grabbing;
-}
-
-.title {
+.open {
   margin: 0;
+  padding: 0.2rem 0.25rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
   font-size: 0.9rem;
   font-weight: 500;
   color: #111827;
+  text-align: left;
   word-break: break-word;
+  cursor: pointer;
+}
+
+.open:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #1d4ed8;
+}
+
+.open:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.dragHandle {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  letter-spacing: -0.08em;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.dragHandle:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .delete {
@@ -48,11 +83,4 @@
 .delete:disabled {
   opacity: 0.65;
   cursor: not-allowed;
-}
-
-.error {
-  grid-column: 1 / -1;
-  margin: 0;
-  color: #b91c1c;
-  font-size: 0.75rem;
 }

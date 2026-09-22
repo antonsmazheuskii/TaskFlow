@@ -19,6 +19,7 @@ type BoardColumnProps = {
   onRename: (columnId: string, title: string) => Promise<void>
   onDelete: (columnId: string) => Promise<void>
   onCreateTask: (columnId: string, title: string) => Promise<void>
+  onOpenTask: (task: Task) => void
   onDeleteTask: (taskId: string) => Promise<void>
 }
 
@@ -28,6 +29,7 @@ export function BoardColumn({
   onRename,
   onDelete,
   onCreateTask,
+  onOpenTask,
   onDeleteTask,
 }: BoardColumnProps) {
   const { notifyError, notifySuccess } = useNotification()
@@ -171,7 +173,12 @@ export function BoardColumn({
           strategy={verticalListSortingStrategy}
         >
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onDelete={onDeleteTask} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              onOpen={onOpenTask}
+              onDelete={onDeleteTask}
+            />
           ))}
         </SortableContext>
       </div>
