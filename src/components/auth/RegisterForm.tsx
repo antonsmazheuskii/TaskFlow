@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { signUp } from '../../services/authService'
-import styles from './RegisterForm.module.css'
+import styles from './AuthForm.module.css'
 
 const MIN_PASSWORD_LENGTH = 6
 
