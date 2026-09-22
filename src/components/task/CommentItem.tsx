@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import type { Comment } from '../../types/comment'
+import { formatDateTime } from '../../utils/formatDateTime'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import styles from './CommentItem.module.css'
 
@@ -38,6 +39,12 @@ export function CommentItem({
 
   return (
     <li className={styles.item}>
+      <div className={styles.meta}>
+        <span className={styles.author}>{comment.author_name}</span>
+        <time className={styles.time} dateTime={comment.created_at}>
+          {formatDateTime(comment.created_at)}
+        </time>
+      </div>
       <p className={styles.content}>{comment.content}</p>
       {canDelete ? (
         <button
