@@ -12,6 +12,7 @@
   font-size: 1rem;
   background: #fff;
   color: #1a1a1a;
+  min-height: var(--touch-target);
 }
 
 .input:focus {
@@ -35,6 +36,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  min-height: var(--touch-target);
 }
 
 .submit:hover:not(:disabled) {

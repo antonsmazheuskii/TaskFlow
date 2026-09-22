@@ -6,6 +6,7 @@
 }
 
 .button {
+  min-height: var(--touch-target);
   padding: 0.55rem 1rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -14,6 +15,14 @@
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .button {
+    width: auto;
+    min-height: auto;
+  }
 }
 
 .button:hover:not(:disabled) {

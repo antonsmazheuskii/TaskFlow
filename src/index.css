@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 html,
 body,
 #root {
@@ -19,4 +23,35 @@ body {
     sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:root {
+  --page-padding: 1rem;
+  --content-max: 720px;
+  --board-header-max: 1100px;
+  --column-width: min(272px, calc(100vw - 2.5rem));
+  --touch-target: 2.75rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-padding: 1.5rem;
+  }
 }
