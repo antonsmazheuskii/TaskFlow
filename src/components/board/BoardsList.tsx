@@ -1,10 +1,20 @@
-import { useBoards } from '../../hooks/useBoards'
 import { BoardListItem } from './BoardListItem'
+import type { Board } from '../../types/board'
 import styles from './BoardsList.module.css'
 
-export function BoardsList() {
-  const { boards, isLoading, error } = useBoards()
+type BoardsListProps = {
+  boards: Board[]
+  isLoading: boolean
+  error: string | null
+  onDelete: (boardId: string) => Promise<void>
+}
 
+export function BoardsList({
+  boards,
+  isLoading,
+  error,
+  onDelete,
+}: BoardsListProps) {
   if (isLoading) {
     return <p className={styles.status}>Загрузка досок…</p>
   }
@@ -24,7 +34,7 @@ export function BoardsList() {
   return (
     <ul className={styles.list}>
       {boards.map((board) => (
-        <BoardListItem key={board.id} board={board} />
+        <BoardListItem key={board.id} board={board} onDelete={onDelete} />
       ))}
     </ul>
   )

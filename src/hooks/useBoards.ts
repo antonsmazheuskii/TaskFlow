@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react'
-import { fetchMyBoards } from '../services/boardsService'
+import {
+  createBoard as createBoardRequest,
+  deleteBoard as deleteBoardRequest,
+  fetchMyBoards,
+} from '../services/boardsService'
 import type { Board } from '../types/board'
 
 type UseBoardsResult = {
   boards: Board[]
   isLoading: boolean
   error: string | null
+  createBoard: (title: string) => Promise<void>
+  deleteBoard: (boardId: string) => Promise<void>
 }
 
 export function useBoards(): UseBoardsResult {
@@ -50,5 +56,15 @@ export function useBoards(): UseBoardsResult {
     }
   }, [])
 
-  return { boards, isLoading, error }
+  async function createBoard(title: string) {
+    const board = await createBoardRequest(title)
+    setBoards((current) => [board, ...current])
+  }
+
+  async function deleteBoard(boardId: string) {
+    await deleteBoardRequest(boardId)
+    setBoards((current) => current.filter((board) => board.id !== boardId))
+  }
+
+  return { boards, isLoading, error, createBoard, deleteBoard }
 }
