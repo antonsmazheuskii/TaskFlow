@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BoardColumns } from '../components/board/BoardColumns'
 import { BoardColumnsSkeleton } from '../components/board/BoardColumnsSkeleton'
 import { AppHeader } from '../components/shared/AppHeader'
@@ -7,23 +7,52 @@ import { Skeleton } from '../components/shared/Skeleton'
 import { useBoard } from '../hooks/useBoard'
 import { useAuth } from '../providers/AuthProvider'
 import { useNotification } from '../providers/NotificationProvider'
+import { deleteBoard } from '../services/boardsService'
 import {
   BOARD_ROLE_LABELS,
   getBoardPermissions,
 } from '../types/permissions'
+import { getErrorMessage } from '../utils/getErrorMessage'
 import styles from './BoardPage.module.css'
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { board, isLoading, error } = useBoard(boardId)
-  const { notifyError } = useNotification()
+  const { notifyError, notifySuccess } = useNotification()
+  const [isDeletingBoard, setIsDeletingBoard] = useState(false)
 
   useEffect(() => {
     if (error) {
       notifyError(error)
     }
   }, [error, notifyError])
+
+  async function handleDeleteBoard() {
+    if (!board) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Удалить доску «${board.title}»? Это действие нельзя отменить.`,
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsDeletingBoard(true)
+
+    try {
+      await deleteBoard(board.id)
+      notifySuccess('Доска удалена.')
+      navigate('/', { replace: true })
+    } catch (err) {
+      notifyError(getErrorMessage(err, 'Не удалось удалить доску.'))
+      setIsDeletingBoard(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -66,11 +95,26 @@ export function BoardPage() {
         ]}
       />
 
-      {!permissions.canManageColumns ? (
-        <p className={styles.roleHint}>
-          Роль Member: просмотр доски и редактирование задач.
-        </p>
-      ) : null}
+      <div className={styles.toolbar}>
+        {!permissions.canManageColumns ? (
+          <p className={styles.roleHint}>
+            Роль Member: просмотр доски и редактирование задач.
+          </p>
+        ) : (
+          <span className={styles.toolbarSpacer} />
+        )}
+
+        {permissions.canDeleteBoard ? (
+          <button
+            className={styles.deleteBoard}
+            type="button"
+            onClick={() => void handleDeleteBoard()}
+            disabled={isDeletingBoard}
+          >
+            {isDeletingBoard ? 'Удаление…' : 'Удалить доску'}
+          </button>
+        ) : null}
+      </div>
 
       <section className={styles.columns} aria-label={`Доска ${board.title}`}>
         <BoardColumns boardId={board.id} ownerId={board.owner_id} />

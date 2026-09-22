@@ -77,6 +77,7 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
     isLoading: isMembersLoading,
     error: membersError,
     inviteByEmail,
+    removeMember,
   } = useBoardMembers(boardId)
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
@@ -241,7 +242,12 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
 
   return (
     <div className={styles.wrapper}>
-      <BoardMembersList members={members} currentUserId={user?.id} />
+      <BoardMembersList
+        members={members}
+        currentUserId={user?.id}
+        canManageMembers={permissions.canInviteMembers}
+        onRemoveMember={removeMember}
+      />
 
       {permissions.canInviteMembers ? (
         <div className={styles.invite}>

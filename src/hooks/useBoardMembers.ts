@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   fetchBoardMembers,
   inviteBoardMemberByEmail,
+  removeBoardMember,
 } from '../services/boardMembersService'
 import type { BoardMember } from '../types/boardMember'
 
@@ -10,6 +11,7 @@ type UseBoardMembersResult = {
   isLoading: boolean
   error: string | null
   inviteByEmail: (email: string) => Promise<void>
+  removeMember: (userId: string) => Promise<void>
 }
 
 export function useBoardMembers(
@@ -80,5 +82,16 @@ export function useBoardMembers(
     })
   }
 
-  return { members, isLoading, error, inviteByEmail }
+  async function removeMember(userId: string) {
+    if (!boardId) {
+      throw new Error('Доска не найдена.')
+    }
+
+    await removeBoardMember(boardId, userId)
+    setMembers((current) =>
+      current.filter((member) => member.user_id !== userId),
+    )
+  }
+
+  return { members, isLoading, error, inviteByEmail, removeMember }
 }

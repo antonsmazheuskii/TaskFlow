@@ -102,3 +102,60 @@ export async function inviteBoardMemberByEmail(
     name: profile?.name ?? null,
   }
 }
+
+export async function removeBoardMember(
+  boardId: string,
+  userId: string,
+): Promise<void> {
+  const { data: member, error: memberError } = await supabase
+    .from('board_members')
+    .select('id, role')
+    .eq('board_id', boardId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (memberError) {
+    throw memberError
+  }
+
+  if (!member) {
+    throw new Error('Участник не найден.')
+  }
+
+  if (member.role === 'owner') {
+    throw new Error('Нельзя удалить владельца доски.')
+  }
+
+  const { data: columns, error: columnsError } = await supabase
+    .from('columns')
+    .select('id')
+    .eq('board_id', boardId)
+
+  if (columnsError) {
+    throw columnsError
+  }
+
+  const columnIds = (columns ?? []).map((column) => column.id)
+
+  if (columnIds.length > 0) {
+    const { error: assigneeError } = await supabase
+      .from('tasks')
+      .update({ assignee_id: null })
+      .in('column_id', columnIds)
+      .eq('assignee_id', userId)
+
+    if (assigneeError) {
+      throw assigneeError
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from('board_members')
+    .delete()
+    .eq('board_id', boardId)
+    .eq('user_id', userId)
+
+  if (deleteError) {
+    throw deleteError
+  }
+}
