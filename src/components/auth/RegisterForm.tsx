@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import { signUp } from '../../services/authService'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './AuthForm.module.css'
+import { ui } from '../../lib/ui'
 
 const MIN_PASSWORD_LENGTH = 6
 
@@ -59,11 +59,11 @@ export function RegisterForm() {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <label className={styles.field}>
-        <span className={styles.label}>Email</span>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Email</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="email"
           name="email"
           autoComplete="email"
@@ -74,10 +74,10 @@ export function RegisterForm() {
         />
       </label>
 
-      <label className={styles.field}>
-        <span className={styles.label}>Пароль</span>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Пароль</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="password"
           name="password"
           autoComplete="new-password"
@@ -89,10 +89,10 @@ export function RegisterForm() {
         />
       </label>
 
-      <label className={styles.field}>
-        <span className={styles.label}>Подтверждение пароля</span>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Подтверждение пароля</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="password"
           name="confirmPassword"
           autoComplete="new-password"
@@ -104,7 +104,7 @@ export function RegisterForm() {
         />
       </label>
 
-      <button className={styles.submit} type="submit" disabled={isSubmitting}>
+      <button className={ui.btnPrimary} type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Регистрация…' : 'Зарегистрироваться'}
       </button>
     </form>

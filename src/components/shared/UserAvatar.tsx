@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import styles from './UserAvatar.module.css'
+import { cn } from '../../lib/ui'
 
 type UserAvatarProps = {
   name: string
@@ -14,12 +14,15 @@ export function UserAvatar({
 }: UserAvatarProps) {
   const [isBroken, setIsBroken] = useState(false)
   const initial = (name.trim() || '?').slice(0, 1).toUpperCase()
-  const sizeClass = size === 'md' ? styles.md : styles.sm
+  const sizeClass = size === 'md' ? 'h-7 w-7 text-[0.7rem]' : 'h-5 w-5 text-[0.6rem]'
 
   if (avatarUrl && !isBroken) {
     return (
       <img
-        className={`${styles.avatar} ${sizeClass}`}
+        className={cn(
+          'shrink-0 rounded-full border border-slate-200 object-cover dark:border-slate-700',
+          sizeClass,
+        )}
         src={avatarUrl}
         alt=""
         onError={() => setIsBroken(true)}
@@ -29,7 +32,10 @@ export function UserAvatar({
 
   return (
     <span
-      className={`${styles.avatar} ${styles.placeholder} ${sizeClass}`}
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
+        sizeClass,
+      )}
       aria-hidden="true"
     >
       {initial}

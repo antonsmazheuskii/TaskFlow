@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './AddCommentForm.module.css'
+import { ui } from '../../lib/ui'
 
 type AddCommentFormProps = {
   onAdd: (content: string) => Promise<void>
@@ -35,9 +35,9 @@ export function AddCommentForm({ onAdd }: AddCommentFormProps) {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
       <textarea
-        className={styles.textarea}
+        className={ui.textarea}
         name="content"
         placeholder="Написать комментарий…"
         value={content}
@@ -47,7 +47,11 @@ export function AddCommentForm({ onAdd }: AddCommentFormProps) {
         maxLength={2000}
         required
       />
-      <button className={styles.submit} type="submit" disabled={isSubmitting}>
+      <button
+        className={`${ui.btnPrimary} self-start`}
+        type="submit"
+        disabled={isSubmitting}
+      >
         {isSubmitting ? 'Отправка…' : 'Добавить'}
       </button>
     </form>

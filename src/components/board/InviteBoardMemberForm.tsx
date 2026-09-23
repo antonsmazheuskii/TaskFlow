@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './InviteBoardMemberForm.module.css'
+import { ui } from '../../lib/ui'
 
 type InviteBoardMemberFormProps = {
   onInvite: (email: string) => Promise<void>
@@ -36,12 +36,12 @@ export function InviteBoardMemberForm({ onInvite }: InviteBoardMemberFormProps) 
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <label className={styles.field}>
-        <span className={styles.label}>Пригласить по email</span>
-        <div className={styles.row}>
+    <form onSubmit={handleSubmit}>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Пригласить по email</span>
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <input
-            className={styles.input}
+            className={ui.input}
             type="email"
             name="email"
             placeholder="user@example.com"
@@ -51,7 +51,7 @@ export function InviteBoardMemberForm({ onInvite }: InviteBoardMemberFormProps) 
             autoComplete="email"
             required
           />
-          <button className={styles.submit} type="submit" disabled={isSubmitting}>
+          <button className={ui.btnPrimary} type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Приглашение…' : 'Пригласить'}
           </button>
         </div>

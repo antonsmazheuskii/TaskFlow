@@ -11,7 +11,7 @@ import type { Column } from '../../types/column'
 import type { Task } from '../../types/task'
 import { getColumnDroppableId } from '../../utils/dndIds'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './BoardColumn.module.css'
+import { cn, ui } from '../../lib/ui'
 
 type BoardColumnProps = {
   column: Column
@@ -127,17 +127,18 @@ export function BoardColumn({
     await onCreateTask(column.id, title)
   }
 
-  const tasksClassName = isOver
-    ? `${styles.tasks} ${styles.tasksOver}`
-    : styles.tasks
-
   return (
-    <section className={styles.column}>
-      <div className={styles.header}>
+    <section
+      className={cn(
+        'flex w-72 shrink-0 snap-start flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-100/90 p-3 shadow-sm',
+        'max-h-[min(70vh,calc(100dvh-9rem))] dark:border-slate-800 dark:bg-slate-900/70',
+      )}
+    >
+      <div className="flex items-start gap-1.5">
         {canManageColumns && isEditing ? (
-          <form className={styles.renameForm} onSubmit={handleSubmit}>
+          <form className="flex min-w-0 flex-1 gap-1.5" onSubmit={handleSubmit}>
             <input
-              className={styles.renameInput}
+              className={ui.input}
               type="text"
               value={draftTitle}
               onChange={(event) => setDraftTitle(event.target.value)}
@@ -148,7 +149,7 @@ export function BoardColumn({
               aria-label="Название колонки"
             />
             <button
-              className={styles.save}
+              className={ui.btnSecondary}
               type="submit"
               disabled={isSaving || isDeleting}
             >
@@ -157,7 +158,7 @@ export function BoardColumn({
           </form>
         ) : canManageColumns ? (
           <button
-            className={styles.titleButton}
+            className="min-w-0 flex-1 rounded-lg px-2 py-1 text-left text-sm font-semibold text-slate-900 transition hover:bg-white/80 disabled:cursor-not-allowed dark:text-slate-100 dark:hover:bg-slate-800"
             type="button"
             onClick={startEditing}
             disabled={isDeleting}
@@ -165,12 +166,18 @@ export function BoardColumn({
             {column.title}
           </button>
         ) : (
-          <h3 className={styles.title}>{column.title}</h3>
+          <h3 className="min-w-0 flex-1 px-2 py-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {column.title}
+          </h3>
         )}
+
+        <span className="mt-1 rounded-full bg-white px-2 py-0.5 text-[0.65rem] font-semibold text-slate-500 shadow-sm dark:bg-slate-800 dark:text-slate-400">
+          {tasks.length}
+        </span>
 
         {canManageColumns ? (
           <button
-            className={styles.delete}
+            className={ui.btnIconDanger}
             type="button"
             onClick={handleDelete}
             disabled={isDeleting || isSaving}
@@ -181,7 +188,13 @@ export function BoardColumn({
         ) : null}
       </div>
 
-      <div ref={setNodeRef} className={tasksClassName}>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          'flex min-h-16 flex-1 flex-col gap-2 overflow-y-auto rounded-lg p-0.5 transition-colors',
+          isOver && 'bg-teal-50/80 ring-2 ring-teal-400/40 dark:bg-teal-950/30',
+        )}
+      >
         <SortableContext
           items={tasks.map((task) => task.id)}
           strategy={verticalListSortingStrategy}
@@ -197,6 +210,12 @@ export function BoardColumn({
             />
           ))}
         </SortableContext>
+
+        {tasks.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-slate-300 px-3 py-6 text-center text-xs text-slate-400 dark:border-slate-700 dark:text-slate-500">
+            Перетащите задачу сюда
+          </p>
+        ) : null}
       </div>
 
       <CreateTaskForm onCreate={handleCreateTask} />

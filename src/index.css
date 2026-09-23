@@ -1,57 +1,72 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-modal-in: modal-in 0.22s ease-out;
+  --animate-toast-in: toast-in 0.25s ease-out;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  min-height: 100%;
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-body {
-  font-family:
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  background: #f3f4f6;
-  color: #111827;
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-img,
-svg,
-video {
-  max-width: 100%;
-  height: auto;
-}
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+  html,
+  body,
+  #root {
+    margin: 0;
+    min-height: 100%;
+  }
 
-:root {
-  --page-padding: 1rem;
-  --content-max: 720px;
-  --board-header-max: 1100px;
-  --column-width: min(272px, calc(100vw - 2.5rem));
-  --touch-target: 2.75rem;
-}
+  body {
+    @apply bg-slate-50 font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+    overflow-x: hidden;
+  }
 
-@media (min-width: 768px) {
-  :root {
-    --page-padding: 1.5rem;
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+    height: auto;
   }
 }

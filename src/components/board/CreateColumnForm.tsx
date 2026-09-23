@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './CreateColumnForm.module.css'
+import { ui } from '../../lib/ui'
 
 type CreateColumnFormProps = {
   onCreate: (title: string) => Promise<void>
@@ -35,9 +35,12 @@ export function CreateColumnForm({ onCreate }: CreateColumnFormProps) {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form
+      className="flex w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-white/60 p-3 dark:border-slate-700 dark:bg-slate-900/40"
+      onSubmit={handleSubmit}
+    >
       <input
-        className={styles.input}
+        className={ui.input}
         type="text"
         name="title"
         placeholder="Новая колонка"
@@ -47,8 +50,8 @@ export function CreateColumnForm({ onCreate }: CreateColumnFormProps) {
         maxLength={80}
         required
       />
-      <button className={styles.submit} type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Добавление…' : 'Добавить'}
+      <button className={ui.btnSecondary} type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Добавление…' : '+ Колонка'}
       </button>
     </form>
   )

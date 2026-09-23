@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useNotification } from '../../providers/NotificationProvider'
 import { signIn } from '../../services/authService'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './AuthForm.module.css'
+import { ui } from '../../lib/ui'
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -45,11 +45,11 @@ export function LoginForm() {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <label className={styles.field}>
-        <span className={styles.label}>Email</span>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Email</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="email"
           name="email"
           autoComplete="email"
@@ -60,10 +60,10 @@ export function LoginForm() {
         />
       </label>
 
-      <label className={styles.field}>
-        <span className={styles.label}>Пароль</span>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Пароль</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="password"
           name="password"
           autoComplete="current-password"
@@ -74,7 +74,7 @@ export function LoginForm() {
         />
       </label>
 
-      <button className={styles.submit} type="submit" disabled={isSubmitting}>
+      <button className={ui.btnPrimary} type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Вход…' : 'Войти'}
       </button>
     </form>

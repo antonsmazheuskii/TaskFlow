@@ -4,7 +4,7 @@ import { useNotification } from '../../providers/NotificationProvider'
 import type { Board } from '../../types/board'
 import { BoardListItem } from './BoardListItem'
 import { BoardsListSkeleton } from './BoardsListSkeleton'
-import styles from './BoardsList.module.css'
+import { ui } from '../../lib/ui'
 
 type BoardsListProps = {
   boards: Board[]
@@ -34,18 +34,25 @@ export function BoardsList({
 
   if (error) {
     return (
-      <p className={styles.error} role="alert">
+      <p className={ui.errorBox} role="alert">
         {error}
       </p>
     )
   }
 
   if (boards.length === 0) {
-    return <p className={styles.status}>У вас пока нет досок.</p>
+    return (
+      <div className={ui.empty}>
+        <p className="font-medium text-slate-700 dark:text-slate-200">
+          Пока нет досок
+        </p>
+        <p className="mt-1">Создайте первую доску, чтобы начать работу.</p>
+      </div>
+    )
   }
 
   return (
-    <ul className={styles.list}>
+    <ul className="m-0 flex list-none flex-col gap-3 p-0">
       {boards.map((board) => (
         <BoardListItem
           key={board.id}

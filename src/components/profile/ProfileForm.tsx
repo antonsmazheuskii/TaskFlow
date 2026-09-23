@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import type { Profile } from '../../types/profile'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './ProfileForm.module.css'
+import { ui } from '../../lib/ui'
 
 type ProfileFormProps = {
   profile: Profile
@@ -42,26 +42,29 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <div className={styles.avatarBlock}>
+    <form className={`${ui.cardPad} flex max-w-md flex-col gap-4`} onSubmit={handleSubmit}>
+      <div className="flex justify-center">
         {previewUrl && !previewBroken ? (
           <img
-            className={styles.avatar}
+            className="h-24 w-24 rounded-full border border-slate-200 object-cover shadow-sm dark:border-slate-700"
             src={previewUrl}
             alt="Аватар"
             onError={() => setPreviewBroken(true)}
           />
         ) : (
-          <div className={styles.avatarPlaceholder} aria-hidden="true">
+          <div
+            className="flex h-24 w-24 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-3xl font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            aria-hidden="true"
+          >
             {(name.trim() || '?').slice(0, 1).toUpperCase()}
           </div>
         )}
       </div>
 
-      <label className={styles.field}>
-        <span className={styles.label}>Имя</span>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Имя</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="text"
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -72,10 +75,10 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
         />
       </label>
 
-      <label className={styles.field}>
-        <span className={styles.label}>URL аватара</span>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>URL аватара</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="url"
           value={avatarUrl}
           onChange={(event) => {
@@ -89,12 +92,15 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
       </label>
 
       {profile.email ? (
-        <p className={styles.email}>
-          Email: <span>{profile.email}</span>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Email:{' '}
+          <span className="font-medium text-slate-800 dark:text-slate-200">
+            {profile.email}
+          </span>
         </p>
       ) : null}
 
-      <button className={styles.submit} type="submit" disabled={isSaving}>
+      <button className={`${ui.btnPrimary} self-start`} type="submit" disabled={isSaving}>
         {isSaving ? 'Сохранение…' : 'Сохранить'}
       </button>
     </form>

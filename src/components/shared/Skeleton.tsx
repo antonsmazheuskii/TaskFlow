@@ -1,19 +1,33 @@
 import type { CSSProperties } from 'react'
-import styles from './Skeleton.module.css'
+import { cn } from '../../lib/ui'
 
 type SkeletonProps = {
   width?: string | number
   height?: string | number
   className?: string
+  rounded?: string
 }
 
-export function Skeleton({ width, height, className }: SkeletonProps) {
+export function Skeleton({
+  width,
+  height,
+  className,
+  rounded = 'rounded-xl',
+}: SkeletonProps) {
   const style: CSSProperties = {
     width: width ?? '100%',
     height: height ?? '1rem',
   }
 
-  const classes = className ? `${styles.skeleton} ${className}` : styles.skeleton
-
-  return <span className={classes} style={style} aria-hidden="true" />
+  return (
+    <span
+      className={cn(
+        'inline-block animate-pulse bg-slate-200/80 dark:bg-slate-800',
+        rounded,
+        className,
+      )}
+      style={style}
+      aria-hidden="true"
+    />
+  )
 }

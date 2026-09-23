@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './CreateTaskForm.module.css'
+import { ui } from '../../lib/ui'
 
 type CreateTaskFormProps = {
   onCreate: (title: string) => Promise<void>
@@ -35,9 +35,9 @@ export function CreateTaskForm({ onCreate }: CreateTaskFormProps) {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className="mt-auto grid grid-cols-[1fr_auto] gap-1.5" onSubmit={handleSubmit}>
       <input
-        className={styles.input}
+        className={ui.input}
         type="text"
         name="title"
         placeholder="Новая задача"
@@ -47,7 +47,12 @@ export function CreateTaskForm({ onCreate }: CreateTaskFormProps) {
         maxLength={200}
         required
       />
-      <button className={styles.submit} type="submit" disabled={isSubmitting}>
+      <button
+        className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-teal-600 text-lg font-semibold text-white shadow-sm transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
+        type="submit"
+        disabled={isSubmitting}
+        aria-label="Добавить задачу"
+      >
         {isSubmitting ? '…' : '+'}
       </button>
     </form>

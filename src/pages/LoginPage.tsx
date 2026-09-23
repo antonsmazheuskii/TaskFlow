@@ -1,18 +1,29 @@
 import { Link } from 'react-router-dom'
 import { LoginForm } from '../components/auth/LoginForm'
-import styles from './AuthPage.module.css'
+import { cn, ui } from '../lib/ui'
 
 export function LoginPage() {
   return (
-    <main className={styles.page}>
-      <section className={styles.card}>
-        <p className={styles.brand}>TaskFlow</p>
-        <h1 className={styles.title}>Вход</h1>
-        <p className={styles.subtitle}>Войдите в аккаунт, чтобы открыть доски</p>
+    <main
+      className={cn(
+        ui.page,
+        'flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950',
+      )}
+    >
+      <section className={cn(ui.cardPad, 'w-full max-w-md animate-modal-in')}>
+        <p className="text-sm font-semibold tracking-wide text-teal-700 dark:text-teal-400">
+          TaskFlow
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          Вход
+        </h1>
+        <p className="mt-1.5 mb-6 text-sm text-slate-500 dark:text-slate-400">
+          Войдите в аккаунт, чтобы открыть доски
+        </p>
         <LoginForm />
-        <p className={styles.footer}>
+        <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">
           Нет аккаунта?{' '}
-          <Link className={styles.link} to="/register">
+          <Link className={ui.link} to="/register">
             Зарегистрироваться
           </Link>
         </p>

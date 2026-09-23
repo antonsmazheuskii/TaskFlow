@@ -30,7 +30,7 @@ import { BoardColumnsSkeleton } from './BoardColumnsSkeleton'
 import { BoardMembersList } from './BoardMembersList'
 import { CreateColumnForm } from './CreateColumnForm'
 import { InviteBoardMemberForm } from './InviteBoardMemberForm'
-import styles from './BoardColumns.module.css'
+import { ui } from '../../lib/ui'
 
 type BoardColumnsProps = {
   boardId: string
@@ -242,14 +242,14 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
 
   if (columnsError || tasksError) {
     return (
-      <p className={styles.error} role="alert">
+      <p className={ui.errorBox} role="alert">
         {columnsError ?? tasksError}
       </p>
     )
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div className="flex min-w-0 flex-col gap-3">
       <BoardMembersList
         members={members}
         currentUserId={user?.id}
@@ -258,7 +258,7 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
       />
 
       {permissions.canInviteMembers ? (
-        <div className={styles.invite}>
+        <div className={`${ui.cardPad} max-w-6xl`}>
           <InviteBoardMemberForm onInvite={inviteByEmail} />
         </div>
       ) : null}
@@ -268,7 +268,7 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
         collisionDetection={closestCorners}
         onDragEnd={handleDragEnd}
       >
-        <div className={styles.board}>
+        <div className="-mx-4 flex snap-x snap-proximity gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 sm:-mx-6 sm:px-6">
           {columns.map((column) => (
             <BoardColumn
               key={column.id}

@@ -1,6 +1,5 @@
 import type { Notification } from '../../types/notification'
 import { Toast } from './Toast'
-import styles from './ToastContainer.module.css'
 
 type ToastContainerProps = {
   notifications: Notification[]
@@ -16,13 +15,15 @@ export function ToastContainer({
   }
 
   return (
-    <div className={styles.container} aria-live="polite" aria-relevant="additions">
+    <div
+      className="pointer-events-none fixed right-4 bottom-4 z-[60] flex w-[min(100%-2rem,22rem)] flex-col gap-2"
+      aria-live="polite"
+      aria-relevant="additions"
+    >
       {notifications.map((notification) => (
-        <Toast
-          key={notification.id}
-          notification={notification}
-          onDismiss={onDismiss}
-        />
+        <div key={notification.id} className="pointer-events-auto">
+          <Toast notification={notification} onDismiss={onDismiss} />
+        </div>
       ))}
     </div>
   )

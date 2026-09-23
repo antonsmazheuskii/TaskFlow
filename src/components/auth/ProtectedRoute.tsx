@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../providers/AuthProvider'
 import { Spinner } from '../shared/Spinner'
-import styles from './ProtectedRoute.module.css'
+import { ui } from '../../lib/ui'
 
 export function ProtectedRoute() {
   const { user, isLoading } = useAuth()
@@ -9,7 +9,7 @@ export function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <main className={styles.loading}>
+      <main className={ui.page}>
         <Spinner label="Проверка сессии…" />
       </main>
     )

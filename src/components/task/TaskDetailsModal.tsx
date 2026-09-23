@@ -5,7 +5,6 @@ import { getErrorMessage } from '../../utils/getErrorMessage'
 import { Modal } from '../shared/Modal'
 import { TaskComments } from './TaskComments'
 import { TaskDetailsForm } from './TaskDetailsForm'
-import styles from './TaskDetailsModal.module.css'
 
 type TaskDetailsModalProps = {
   task: Task
@@ -36,7 +35,7 @@ export function TaskDetailsModal({
 
   return (
     <Modal title="Детали задачи" onClose={onClose}>
-      <div className={styles.content}>
+      <div className="flex flex-col gap-6">
         <TaskDetailsForm
           task={task}
           members={members}
@@ -44,7 +43,9 @@ export function TaskDetailsModal({
           onSave={handleSave}
           onCancel={onClose}
         />
-        <TaskComments taskId={task.id} />
+        <div className="border-t border-slate-100 pt-5 dark:border-slate-800">
+          <TaskComments taskId={task.id} />
+        </div>
       </div>
     </Modal>
   )

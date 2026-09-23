@@ -10,7 +10,7 @@ import {
   type TaskDetailsUpdate,
   type TaskPriority,
 } from '../../types/task'
-import styles from './TaskDetailsForm.module.css'
+import { ui } from '../../lib/ui'
 
 type TaskDetailsFormProps = {
   task: Task
@@ -67,11 +67,11 @@ export function TaskDetailsForm({
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <label className={styles.field}>
-        <span className={styles.label}>Название</span>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Название</span>
         <input
-          className={styles.input}
+          className={ui.input}
           type="text"
           name="title"
           value={title}
@@ -82,10 +82,10 @@ export function TaskDetailsForm({
         />
       </label>
 
-      <label className={styles.field}>
-        <span className={styles.label}>Описание</span>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Описание</span>
         <textarea
-          className={styles.textarea}
+          className={ui.textarea}
           name="description"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
@@ -95,11 +95,11 @@ export function TaskDetailsForm({
         />
       </label>
 
-      <div className={styles.row}>
-        <label className={styles.field}>
-          <span className={styles.label}>Приоритет</span>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="flex flex-col gap-1.5">
+          <span className={ui.label}>Приоритет</span>
           <select
-            className={styles.select}
+            className={ui.select}
             name="priority"
             value={priority}
             onChange={(event) =>
@@ -115,10 +115,10 @@ export function TaskDetailsForm({
           </select>
         </label>
 
-        <label className={styles.field}>
-          <span className={styles.label}>Дедлайн</span>
+        <label className="flex flex-col gap-1.5">
+          <span className={ui.label}>Дедлайн</span>
           <input
-            className={styles.input}
+            className={ui.input}
             type="date"
             name="dueDate"
             value={dueDate}
@@ -128,10 +128,10 @@ export function TaskDetailsForm({
         </label>
       </div>
 
-      <label className={styles.field}>
-        <span className={styles.label}>Исполнитель</span>
+      <label className="flex flex-col gap-1.5">
+        <span className={ui.label}>Исполнитель</span>
         <select
-          className={styles.select}
+          className={ui.select}
           name="assignee"
           value={assigneeId}
           onChange={(event) => setAssigneeId(event.target.value)}
@@ -147,9 +147,9 @@ export function TaskDetailsForm({
         </select>
       </label>
 
-      <div className={styles.actions}>
+      <div className="flex flex-wrap justify-end gap-2 pt-1">
         <button
-          className={styles.cancel}
+          className={ui.btnSecondary}
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
@@ -157,7 +157,7 @@ export function TaskDetailsForm({
           Отмена
         </button>
         <button
-          className={styles.submit}
+          className={ui.btnPrimary}
           type="submit"
           disabled={isSubmitting || !title.trim()}
         >

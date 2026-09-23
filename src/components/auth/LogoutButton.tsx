@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useNotification } from '../../providers/NotificationProvider'
 import { signOut } from '../../services/authService'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './LogoutButton.module.css'
+import { ui } from '../../lib/ui'
 
 export function LogoutButton() {
   const navigate = useNavigate()
@@ -24,15 +24,13 @@ export function LogoutButton() {
   }
 
   return (
-    <div className={styles.wrap}>
-      <button
-        className={styles.button}
-        type="button"
-        onClick={handleLogout}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Выход…' : 'Выйти'}
-      </button>
-    </div>
+    <button
+      className={ui.btnSecondary}
+      type="button"
+      onClick={handleLogout}
+      disabled={isSubmitting}
+    >
+      {isSubmitting ? 'Выход…' : 'Выйти'}
+    </button>
   )
 }

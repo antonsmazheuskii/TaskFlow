@@ -13,7 +13,7 @@ import {
   getBoardPermissions,
 } from '../types/permissions'
 import { getErrorMessage } from '../utils/getErrorMessage'
-import styles from './BoardPage.module.css'
+import { ui } from '../lib/ui'
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>()
@@ -56,12 +56,12 @@ export function BoardPage() {
 
   if (isLoading) {
     return (
-      <main className={styles.page}>
+      <main className={ui.page}>
         <AppHeader breadcrumbs={[{ label: 'Загрузка…' }]} />
-        <div className={styles.loadingTitle}>
+        <div className="mx-auto mb-4 w-full max-w-6xl">
           <Skeleton height="1.75rem" width="40%" />
         </div>
-        <section className={styles.columns}>
+        <section>
           <BoardColumnsSkeleton />
         </section>
       </main>
@@ -70,14 +70,16 @@ export function BoardPage() {
 
   if (error || !board) {
     return (
-      <main className={styles.page}>
+      <main className={ui.page}>
         <AppHeader />
-        <p className={styles.error} role="alert">
-          {error ?? 'Доска не найдена.'}
-        </p>
-        <Link className={styles.back} to="/">
-          Вернуться к списку досок
-        </Link>
+        <div className={ui.pageWide}>
+          <p className={ui.errorBox} role="alert">
+            {error ?? 'Доска не найдена.'}
+          </p>
+          <Link className={`${ui.link} mt-4 inline-flex`} to="/">
+            Вернуться к списку досок
+          </Link>
+        </div>
       </main>
     )
   }
@@ -86,7 +88,7 @@ export function BoardPage() {
   const permissions = getBoardPermissions(role)
 
   return (
-    <main className={styles.page}>
+    <main className={ui.page}>
       <AppHeader
         breadcrumbs={[
           {
@@ -95,18 +97,18 @@ export function BoardPage() {
         ]}
       />
 
-      <div className={styles.toolbar}>
+      <div className="mx-auto mb-4 flex w-full max-w-6xl flex-wrap items-center justify-between gap-3">
         {!permissions.canManageColumns ? (
-          <p className={styles.roleHint}>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Роль Member: просмотр доски и редактирование задач.
           </p>
         ) : (
-          <span className={styles.toolbarSpacer} />
+          <span className="flex-1" />
         )}
 
         {permissions.canDeleteBoard ? (
           <button
-            className={styles.deleteBoard}
+            className={ui.btnDanger}
             type="button"
             onClick={() => void handleDeleteBoard()}
             disabled={isDeletingBoard}
@@ -116,7 +118,7 @@ export function BoardPage() {
         ) : null}
       </div>
 
-      <section className={styles.columns} aria-label={`Доска ${board.title}`}>
+      <section aria-label={`Доска ${board.title}`}>
         <BoardColumns boardId={board.id} ownerId={board.owner_id} />
       </section>
     </main>

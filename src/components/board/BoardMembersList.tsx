@@ -9,7 +9,8 @@ import {
   type BoardMember,
 } from '../../types/boardMember'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './BoardMembersList.module.css'
+import { cn, ui } from '../../lib/ui'
+import { UserAvatar } from '../shared/UserAvatar'
 
 type BoardMembersListProps = {
   members: BoardMember[]
@@ -58,37 +59,52 @@ export function BoardMembersList({
   }
 
   return (
-    <section className={styles.section} aria-labelledby="members-heading">
-      <h3 id="members-heading" className={styles.title}>
+    <section className="w-full max-w-6xl" aria-labelledby="members-heading">
+      <h3
+        id="members-heading"
+        className="mb-2 text-sm font-semibold text-slate-600 dark:text-slate-300"
+      >
         Участники
       </h3>
-      <ul className={styles.list}>
+      <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
         {members.map((member) => {
           const role = member.role as BoardRole
           const isCurrentUser = member.user_id === currentUserId
           const canRemove =
             canManageMembers && role === 'member' && !isCurrentUser
+          const name = getMemberDisplayName(member)
 
           return (
-            <li key={member.id} className={styles.item}>
-              <span className={styles.name}>
-                {getMemberDisplayName(member)}
+            <li
+              key={member.id}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pr-2 pl-1 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+            >
+              <UserAvatar
+                name={name}
+                avatarUrl={member.avatar_url}
+                size="sm"
+              />
+              <span className="text-xs font-medium text-slate-800 dark:text-slate-100">
+                {name}
                 {isCurrentUser ? ' (вы)' : ''}
               </span>
               <span
-                className={
-                  role === 'owner' ? styles.roleOwner : styles.roleMember
-                }
+                className={cn(
+                  'rounded-full px-1.5 py-0.5 text-[0.65rem] font-semibold',
+                  role === 'owner'
+                    ? 'bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+                )}
               >
                 {BOARD_ROLE_LABELS[role]}
               </span>
               {canRemove ? (
                 <button
-                  className={styles.remove}
+                  className={ui.btnIconDanger}
                   type="button"
                   onClick={() => void handleRemove(member)}
                   disabled={removingUserId === member.user_id}
-                  aria-label={`Удалить участника ${getMemberDisplayName(member)}`}
+                  aria-label={`Удалить участника ${name}`}
                 >
                   {removingUserId === member.user_id ? '…' : '×'}
                 </button>

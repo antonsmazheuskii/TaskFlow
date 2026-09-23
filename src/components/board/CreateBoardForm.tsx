@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNotification } from '../../providers/NotificationProvider'
 import { getErrorMessage } from '../../utils/getErrorMessage'
-import styles from './CreateBoardForm.module.css'
+import { ui } from '../../lib/ui'
 
 type CreateBoardFormProps = {
   onCreate: (title: string) => Promise<void>
@@ -36,9 +36,12 @@ export function CreateBoardForm({ onCreate }: CreateBoardFormProps) {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form
+      className="grid gap-2 sm:grid-cols-[1fr_auto]"
+      onSubmit={handleSubmit}
+    >
       <input
-        className={styles.input}
+        className={ui.input}
         type="text"
         name="title"
         placeholder="Название доски"
@@ -48,7 +51,7 @@ export function CreateBoardForm({ onCreate }: CreateBoardFormProps) {
         maxLength={120}
         required
       />
-      <button className={styles.submit} type="submit" disabled={isSubmitting}>
+      <button className={ui.btnPrimary} type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Создание…' : 'Создать'}
       </button>
     </form>
