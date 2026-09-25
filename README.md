@@ -1,32 +1,84 @@
-# React + TypeScript + Vite
+# TaskFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Визуальный таск-трекер-приложение для управления задачами (Jira-lite) на React, TypeScript и Supabase: доски, колонки, drag-and-drop, realtime, совместный доступ и профили.
 
-Currently, two official plugins are available:
+**Стек:** React 19 · Vite · TypeScript · Supabase (Auth, Postgres, RLS, Realtime) · React Router · @dnd-kit · Tailwind CSS
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Демо
 
-## React Compiler
+- Приложение: _добавить ссылку на Vercel после деплоя_
+- Репозиторий: https://github.com/antonsmazheuskii/TaskFlow
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Тестовый пользователь (после деплоя / в своём проекте Supabase): зарегистрируйтесь через UI или создайте пользователя в Supabase Auth → Users.
 
-## Expanding the Oxlint configuration
+## Запуск
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+git clone https://github.com/antonsmazheuskii/TaskFlow.git
+cd TaskFlow
+npm install
+cp .env.example .env   # заполнить ключи Supabase
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Откройте `http://localhost:5173`.
+
+### Переменные окружения
+
+Скопируйте `.env.example` в `.env` и укажите значения из Supabase → Project Settings → API:
+
+| Переменная | Описание |
+| --- | --- |
+| `VITE_SUPABASE_URL` | URL проекта (`https://xxxx.supabase.co`) |
+| `VITE_SUPABASE_ANON_KEY` | публичный `anon` / `publishable` key |
+
+Не коммитьте `.env` с реальными ключами.
+
+## Реализованные уровни
+
+| Уровень | Статус |
+| --- | --- |
+| **1. MVP** | Полностью |
+| **2. Полный функционал** | Полностью |
+| **3. Бонус** | Частично (системная тёмная тема через `prefers-color-scheme`) |
+
+### Уровень 1 — MVP
+
+- Регистрация / вход / выход (Supabase Auth), защита роутов
+- Список досок, создание, удаление, переход на доску
+- Колонки по умолчанию (To Do / In Progress / Done), CRUD колонок
+- Задачи: создание, удаление, DnD между колонками и внутри колонки
+- Адаптивный UI, навигация, скелетоны / спиннеры, toast-уведомления об ошибках
+
+### Уровень 2 — полный функционал
+
+- Модалка задачи: название, описание, приоритет, дедлайн, assignee
+- Комментарии: список, добавление / удаление, автор и время
+- Realtime: обновление колонок и задач без перезагрузки
+- Приглашение по email, роли owner / member, управление участниками и удаление доски owner’ом
+- Профиль: имя, аватар (URL), отображение аватаров на карточках и в комментариях
+
+### Уровень 3 — бонус
+
+Сделано:
+
+- Тёмная тема по системным настройкам ОС (Tailwind `dark:`)
+
+Не сделано (см. ниже).
+
+## Что улучшить при наличии времени
+
+- Загрузка аватара и вложений в Supabase Storage (сейчас аватар — URL)
+- Фильтры и поиск задач, лог активности на доске
+- Переключатель light/dark в UI, Google OAuth
+- Горячие клавиши (N — новая задача, Esc — закрыть модалку)
+- Тесты ключевых хуков и сервисов
+
+## Скрипты
+
+```bash
+npm run dev      # разработка
+npm run build    # production-сборка
+npm run preview  # просмотр сборки
+npm run lint     # oxlint
+```
