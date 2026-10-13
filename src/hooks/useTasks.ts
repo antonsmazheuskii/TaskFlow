@@ -211,18 +211,23 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     ])
 
     try {
-      const updatedTargetTasks = await moveTaskToColumnRequest(
+      const affectedTasks = await moveTaskToColumnRequest(
         taskId,
         targetColumnId,
         targetIndex,
+      )
+      const affectedIds = new Set(affectedTasks.map((task) => task.id))
+      const affectedColumnIds = new Set(
+        affectedTasks.map((task) => task.column_id),
       )
 
       setTasks((current) => [
         ...current.filter(
           (task) =>
-            task.id !== taskId && task.column_id !== targetColumnId,
+            !affectedIds.has(task.id) &&
+            !affectedColumnIds.has(task.column_id),
         ),
-        ...updatedTargetTasks,
+        ...affectedTasks,
       ])
     } catch (err) {
       setTasks(previousTasks)

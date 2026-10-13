@@ -93,79 +93,33 @@ export async function moveTaskToColumn(
   targetColumnId: string,
   targetIndex?: number,
 ): Promise<Task[]> {
-  const { data: columnTasks, error: columnTasksError } = await supabase
-    .from('tasks')
-    .select(TASK_SELECT)
-    .eq('column_id', targetColumnId)
-    .neq('id', taskId)
-    .order('position', { ascending: true })
+  const { data, error } = await supabase.rpc('move_task_to_column', {
+    p_task_id: taskId,
+    p_target_column_id: targetColumnId,
+    p_target_index: targetIndex ?? null,
+  })
 
-  if (columnTasksError) {
-    throw columnTasksError
+  if (error) {
+    throw error
   }
 
-  const siblings = columnTasks ?? []
-  const insertIndex =
-    targetIndex === undefined
-      ? siblings.length
-      : Math.max(0, Math.min(targetIndex, siblings.length))
-
-  const orderedIds = [
-    ...siblings.slice(0, insertIndex).map((task) => task.id),
-    taskId,
-    ...siblings.slice(insertIndex).map((task) => task.id),
-  ]
-
-  const updates = orderedIds.map((id, position) =>
-    supabase
-      .from('tasks')
-      .update({
-        column_id: targetColumnId,
-        position,
-      })
-      .eq('id', id)
-      .select(TASK_SELECT)
-      .single(),
-  )
-
-  const results = await Promise.all(updates)
-  const failed = results.find((result) => result.error)
-
-  if (failed?.error) {
-    throw failed.error
-  }
-
-  return results
-    .map((result) => result.data)
-    .filter((task): task is Task => task !== null)
+  return (data as Task[] | null) ?? []
 }
 
 export async function reorderTasksInColumn(
   columnId: string,
   orderedTaskIds: string[],
 ): Promise<Task[]> {
-  const updates = orderedTaskIds.map((id, position) =>
-    supabase
-      .from('tasks')
-      .update({
-        column_id: columnId,
-        position,
-      })
-      .eq('id', id)
-      .select(TASK_SELECT)
-      .single(),
-  )
+  const { data, error } = await supabase.rpc('reorder_tasks_in_column', {
+    p_column_id: columnId,
+    p_ordered_task_ids: orderedTaskIds,
+  })
 
-  const results = await Promise.all(updates)
-  const failed = results.find((result) => result.error)
-
-  if (failed?.error) {
-    throw failed.error
+  if (error) {
+    throw error
   }
 
-  return results
-    .map((result) => result.data)
-    .filter((task): task is Task => task !== null)
+  return (data as Task[] | null) ?? []
 }
 
 export async function deleteTask(taskId: string): Promise<void> {

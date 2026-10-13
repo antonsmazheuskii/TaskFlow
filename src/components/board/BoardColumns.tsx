@@ -49,6 +49,7 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
     columns,
     isLoading: isColumnsLoading,
     error: columnsError,
+    refetch: refetchColumns,
     applyRealtimeInsert: applyColumnInsert,
     applyRealtimeUpdate: applyColumnUpdate,
     applyRealtimeDelete: applyColumnDelete,
@@ -61,6 +62,7 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
     tasks,
     isLoading: isTasksLoading,
     error: tasksError,
+    refetch: refetchTasks,
     applyRealtimeInsert: applyTaskInsert,
     applyRealtimeUpdate: applyTaskUpdate,
     applyRealtimeDelete: applyTaskDelete,
@@ -144,6 +146,9 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
       onTaskInsert: applyTaskInsert,
       onTaskUpdate: applyTaskUpdate,
       onTaskDelete: applyTaskDelete,
+      onResync: async () => {
+        await Promise.all([refetchColumns(), refetchTasks()])
+      },
     },
   )
 
