@@ -1,6 +1,5 @@
 import { supabase } from './supabaseClient'
 import type { BoardMember } from '../types/boardMember'
-import { findProfileIdByEmail } from './profilesService'
 
 export async function fetchBoardMembers(
   boardId: string,
@@ -43,69 +42,57 @@ export async function fetchBoardMembers(
       id: member.id,
       board_id: member.board_id,
       user_id: member.user_id,
-      role: member.role,
+      role: member.role as BoardMember['role'],
       name: profile?.name ?? null,
       avatar_url: profile?.avatar_url ?? null,
     }
   })
 }
 
+type InviteBoardMemberRow = {
+  id: string
+  board_id: string
+  user_id: string
+  role: string
+  name: string | null
+  avatar_url: string | null
+}
+
 export async function inviteBoardMemberByEmail(
   boardId: string,
   email: string,
 ): Promise<BoardMember> {
-  const userId = await findProfileIdByEmail(email)
+  const trimmedEmail = email.trim()
 
-  if (!userId) {
-    throw new Error('Пользователь с таким email не найден. Он должен сначала зарегистрироваться.')
+  if (!trimmedEmail) {
+    throw new Error('Введите email.')
   }
 
-  const { data: existing, error: existingError } = await supabase
-    .from('board_members')
-    .select('id')
-    .eq('board_id', boardId)
-    .eq('user_id', userId)
-    .maybeSingle()
+  const { data, error } = await supabase.rpc('invite_board_member', {
+    p_board_id: boardId,
+    p_email: trimmedEmail,
+  })
 
-  if (existingError) {
-    throw existingError
+  if (error) {
+    throw error
   }
 
-  if (existing) {
-    throw new Error('Этот пользователь уже участник доски.')
-  }
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | InviteBoardMemberRow
+    | null
+    | undefined
 
-  const { data: member, error: memberError } = await supabase
-    .from('board_members')
-    .insert({
-      board_id: boardId,
-      user_id: userId,
-      role: 'member',
-    })
-    .select('id, board_id, user_id, role')
-    .single()
-
-  if (memberError) {
-    throw memberError
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('name, avatar_url')
-    .eq('id', userId)
-    .maybeSingle()
-
-  if (profileError) {
-    throw profileError
+  if (!row) {
+    throw new Error('Не удалось пригласить пользователя.')
   }
 
   return {
-    id: member.id,
-    board_id: member.board_id,
-    user_id: member.user_id,
-    role: member.role,
-    name: profile?.name ?? null,
-    avatar_url: profile?.avatar_url ?? null,
+    id: row.id,
+    board_id: row.board_id,
+    user_id: row.user_id,
+    role: row.role as BoardMember['role'],
+    name: row.name,
+    avatar_url: row.avatar_url,
   }
 }
 

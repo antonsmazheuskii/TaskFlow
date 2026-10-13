@@ -1,16 +1,10 @@
 import { supabase } from './supabaseClient'
 import type { Profile } from '../types/profile'
 
-export async function ensureUserProfile(
-  userId: string,
-  email: string | undefined,
-): Promise<void> {
-  const normalizedEmail = email?.trim().toLowerCase() || null
-  const fallbackName = normalizedEmail || 'Пользователь'
-
+export async function ensureUserProfile(userId: string): Promise<void> {
   const { data: existing, error: existingError } = await supabase
     .from('profiles')
-    .select('id, name, email')
+    .select('id, name')
     .eq('id', userId)
     .maybeSingle()
 
@@ -18,56 +12,61 @@ export async function ensureUserProfile(
     throw existingError
   }
 
-  if (!existing) {
-    const { error } = await supabase.from('profiles').insert({
-      id: userId,
-      name: fallbackName,
-      email: normalizedEmail,
-    })
-
-    if (error) {
-      throw error
-    }
-
+  if (existing) {
     return
   }
 
-  const updates: { name?: string; email?: string } = {}
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
 
-  if (!existing.name?.trim()) {
-    updates.name = fallbackName
+  if (userError) {
+    throw userError
   }
 
-  if (!existing.email && normalizedEmail) {
-    updates.email = normalizedEmail
-  }
+  const fallbackName =
+    user?.email?.trim().toLowerCase() || 'Пользователь'
 
-  if (Object.keys(updates).length === 0) {
-    return
-  }
-
-  const { error } = await supabase
-    .from('profiles')
-    .update(updates)
-    .eq('id', userId)
+  const { error } = await supabase.from('profiles').insert({
+    id: userId,
+    name: fallbackName,
+  })
 
   if (error) {
+    // Профиль мог создать триггер auth — повторная вставка не ошибка.
+    if (error.code === '23505') {
+      return
+    }
+
     throw error
   }
 }
 
 export async function fetchOwnProfile(userId: string): Promise<Profile> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, name, email, avatar_url')
-    .eq('id', userId)
-    .single()
+  const [{ data, error }, authResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .eq('id', userId)
+      .single(),
+    supabase.auth.getUser(),
+  ])
 
   if (error) {
     throw error
   }
 
-  return data
+  if (authResult.error) {
+    throw authResult.error
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    avatar_url: data.avatar_url,
+    email: authResult.data.user?.email ?? null,
+  }
 }
 
 export type UpdateProfileInput = {
@@ -103,32 +102,26 @@ export async function updateOwnProfile(
       avatar_url: avatarUrl,
     })
     .eq('id', userId)
-    .select('id, name, email, avatar_url')
+    .select('id, name, avatar_url')
     .single()
 
   if (error) {
     throw error
   }
 
-  return data
-}
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
 
-export async function findProfileIdByEmail(email: string): Promise<string | null> {
-  const normalizedEmail = email.trim().toLowerCase()
-
-  if (!normalizedEmail) {
-    throw new Error('Введите email.')
+  if (userError) {
+    throw userError
   }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('email', normalizedEmail)
-    .maybeSingle()
-
-  if (error) {
-    throw error
+  return {
+    id: data.id,
+    name: data.name,
+    avatar_url: data.avatar_url,
+    email: user?.email ?? null,
   }
-
-  return data?.id ?? null
 }

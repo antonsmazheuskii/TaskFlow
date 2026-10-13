@@ -34,7 +34,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       try {
-        await ensureUserProfile(nextSession.user.id, nextSession.user.email)
+        await ensureUserProfile(nextSession.user.id)
       } catch {
         // Профиль не блокирует вход; список исполнителей может быть без имени.
       }
