@@ -1,17 +1,26 @@
 # TaskFlow
 
-Визуальный таск-трекер-приложение для управления задачами (Jira-lite) на React, TypeScript и Supabase: доски, колонки, drag-and-drop, realtime, совместный доступ и профили.
+Канбан-приложение для управления задачами (Jira-lite) на React, TypeScript и Supabase: доски, колонки, drag-and-drop, realtime, совместный доступ и профили.
 
-**Стек:** React 19 · Vite · TypeScript · Supabase (Auth, Postgres, RLS, Realtime) · React Router · @dnd-kit · Tailwind CSS
+**Стек:** React 19 · Vite · TypeScript (strict) · Supabase (Auth, Postgres, RLS, Realtime) · React Router · @dnd-kit · Tailwind CSS
 
 ## Демо
 
-- Приложение: _добавить ссылку на Vercel после деплоя_
-- Репозиторий: https://github.com/antonsmazheuskii/TaskFlow
+| | |
+| --- | --- |
+| **Приложение (Vercel)** | https://task-flow-gamma-umber.vercel.app |
+| **Репозиторий** | https://github.com/antonsmazheuskii/TaskFlow |
 
-Тестовый пользователь (после деплоя / в своём проекте Supabase): зарегистрируйтесь через UI или создайте пользователя в Supabase Auth → Users.
+### Демо-учётные записи
 
-## Запуск
+| Роль | Email | Пароль |
+| --- | --- | --- |
+| Owner | `owner@taskflow.demo` | `TaskFlowOwner1!` |
+| Member | `member@taskflow.demo` | `TaskFlowMember1!` |
+
+Учётки уже созданы в Supabase; на демо-доске `Demo Board` member приглашён. Вход — данными из таблицы выше.
+
+## Локальный запуск
 
 ```bash
 git clone https://github.com/antonsmazheuskii/TaskFlow.git
@@ -25,14 +34,44 @@ npm run dev
 
 ### Переменные окружения
 
-Скопируйте `.env.example` в `.env` и укажите значения из Supabase → Project Settings → API:
+Скопируйте `.env.example` → `.env`. Значения: Supabase → Project Settings → API.
 
 | Переменная | Описание |
 | --- | --- |
 | `VITE_SUPABASE_URL` | URL проекта (`https://xxxx.supabase.co`) |
-| `VITE_SUPABASE_ANON_KEY` | публичный `anon` / `publishable` key |
+| `VITE_SUPABASE_ANON_KEY` | публичный `anon` key |
 
-Не коммитьте `.env` с реальными ключами.
+Реальные ключи в git не коммитить.
+
+## Развёртывание Supabase с нуля
+
+1. Создайте проект на [supabase.com](https://supabase.com).
+2. Authentication → Providers → включите **Email**.
+3. SQL Editor: выполните миграции из папки [`supabase/migrations/`](./supabase/migrations/) **строго по порядку** `01` → `17` (инструкция внутри [`supabase/migrations/README.md`](./supabase/migrations/README.md)).
+4. Database → Publications: убедитесь, что `columns` и `tasks` в `supabase_realtime` (скрипты `11` и `17`).
+5. Создайте демо-пользователей (таблица выше).
+6. Вставьте `VITE_SUPABASE_*` в `.env` (локально) и в Environment Variables на Vercel (для деплоя).
+
+Исходные SQL также лежат в `supabase/*.sql` (история разработки); для новой БД используйте только `supabase/migrations/`.
+
+## Деплой на Vercel
+
+```bash
+npm i -g vercel
+vercel login
+vercel          # Preview
+vercel --prod   # Production
+```
+
+В проекте Vercel добавьте:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+После деплоя сделайте Redeploy (Vite подставляет env на этапе build).  
+В корень добавлен `vercel.json` (SPA rewrite на `index.html`).
+
+Вставьте итоговый URL в секцию **Демо** этого README.
 
 ## Реализованные уровни
 
@@ -40,45 +79,39 @@ npm run dev
 | --- | --- |
 | **1. MVP** | Полностью |
 | **2. Полный функционал** | Полностью |
-| **3. Бонус** | Частично (системная тёмная тема через `prefers-color-scheme`) |
+| **3. Бонус** | Частично (тёмная тема через `prefers-color-scheme`) |
 
 ### Уровень 1 — MVP
 
-- Регистрация / вход / выход (Supabase Auth), защита роутов
-- Список досок, создание, удаление, переход на доску
-- Колонки по умолчанию (To Do / In Progress / Done), CRUD колонок
-- Задачи: создание, удаление, DnD между колонками и внутри колонки
-- Адаптивный UI, навигация, скелетоны / спиннеры, toast-уведомления об ошибках
+- Регистрация / вход / выход, защита роутов
+- Доски: список, создание, удаление, переход
+- Колонки по умолчанию + CRUD
+- Задачи: создание, удаление, DnD
+- Адаптивный UI, скелетоны, toast-ошибки
 
 ### Уровень 2 — полный функционал
 
-- Модалка задачи: название, описание, приоритет, дедлайн, assignee
-- Комментарии: список, добавление / удаление, автор и время
-- Realtime: обновление колонок и задач без перезагрузки
-- Приглашение по email, роли owner / member, управление участниками и удаление доски owner’ом
-- Профиль: имя, аватар (URL), отображение аватаров на карточках и в комментариях
+- Детали задачи, комментарии, realtime
+- Invite по email, роли owner/member, управление участниками
+- Профиль (имя, аватар URL), аватары на карточках и в комментариях
 
 ### Уровень 3 — бонус
 
-Сделано:
-
-- Тёмная тема по системным настройкам ОС (Tailwind `dark:`)
-
-Не сделано (см. ниже).
+- Системная тёмная тема (`dark:`)
 
 ## Что улучшить при наличии времени
 
-- Загрузка аватара и вложений в Supabase Storage (сейчас аватар — URL)
-- Фильтры и поиск задач, лог активности на доске
-- Переключатель light/dark в UI, Google OAuth
-- Горячие клавиши (N — новая задача, Esc — закрыть модалку)
-- Тесты ключевых хуков и сервисов
+- Загрузка аватара/файлов в Storage
+- Фильтры и поиск, activity log
+- Переключатель темы, Google OAuth, хоткеи
+- Автотесты критичных сценариев
 
 ## Скрипты
 
 ```bash
-npm run dev      # разработка
-npm run build    # production-сборка
-npm run preview  # просмотр сборки
-npm run lint     # oxlint
+npm run dev        # разработка
+npm run typecheck  # tsc strict
+npm run build      # tsc -b && vite build
+npm run preview
+npm run lint
 ```
