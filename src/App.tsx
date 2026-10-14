@@ -11,8 +11,8 @@ import { RegisterPage } from './pages/RegisterPage'
 
 function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
+    <NotificationProvider>
+      <AuthProvider>
         <BrowserRouter>
           <Routes>
             <Route element={<ProtectedRoute />}>
@@ -26,8 +26,8 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-      </NotificationProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </NotificationProvider>
   )
 }
 
