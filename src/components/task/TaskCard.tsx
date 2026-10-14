@@ -134,13 +134,15 @@ export function TaskCard({
       <button
         className={cn(
           ui.btnIcon,
-          'cursor-grab touch-none opacity-60 group-hover:opacity-100 active:cursor-grabbing',
+          'cursor-grab opacity-70 group-hover:opacity-100 focus-visible:opacity-100 active:cursor-grabbing',
+          'touch-manipulation',
         )}
         type="button"
-        aria-label={`Переместить задачу ${task.title}`}
+        title="Перетащите или Space/Enter и стрелки с клавиатуры"
         disabled={isDeleting}
-        {...listeners}
         {...attributes}
+        {...listeners}
+        aria-label={`Переместить задачу ${task.title}`}
       >
         ⋮⋮
       </button>

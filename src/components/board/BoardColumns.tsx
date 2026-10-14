@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react'
 import {
   DndContext,
+  KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCorners,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { arrayMove } from '@dnd-kit/sortable'
+import {
+  arrayMove,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable'
 import { useColumns } from '../../hooks/useColumns'
 import { useBoardMembers } from '../../hooks/useBoardMembers'
 import { useBoardRealtime } from '../../hooks/useBoardRealtime'
@@ -130,6 +135,15 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
       activationConstraint: {
         distance: 6,
       },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     }),
   )
 
@@ -268,10 +282,39 @@ export function BoardColumns({ boardId, ownerId }: BoardColumnsProps) {
         </div>
       ) : null}
 
+      <p className="sr-only">
+        Перемещение задач: фокус на ручке карточки, Space или Enter — взять,
+        стрелки — переместить, Space или Enter — положить, Escape — отмена.
+      </p>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragEnd={handleDragEnd}
+        accessibility={{
+          announcements: {
+            onDragStart({ active }) {
+              return `Задача ${String(active.id)} поднята.`
+            },
+            onDragOver({ active, over }) {
+              if (!over) {
+                return `Задача ${String(active.id)} вне цели.`
+              }
+
+              return `Задача ${String(active.id)} над ${String(over.id)}.`
+            },
+            onDragEnd({ active, over }) {
+              if (!over) {
+                return `Перемещение задачи ${String(active.id)} отменено.`
+              }
+
+              return `Задача ${String(active.id)} перемещена к ${String(over.id)}.`
+            },
+            onDragCancel({ active }) {
+              return `Перемещение задачи ${String(active.id)} отменено.`
+            },
+          },
+        }}
       >
         <div className="-mx-4 flex snap-x snap-proximity gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 sm:-mx-6 sm:px-6">
           {columns.map((column) => (
