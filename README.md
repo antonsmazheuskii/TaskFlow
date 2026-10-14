@@ -47,7 +47,7 @@ npm run dev
 
 1. Создайте проект на [supabase.com](https://supabase.com).
 2. Authentication → Providers → включите **Email**.
-3. SQL Editor: выполните миграции из папки [`supabase/migrations/`](./supabase/migrations/) **строго по порядку** `01` → `18` (инструкция внутри [`supabase/migrations/README.md`](./supabase/migrations/README.md)).
+3. SQL Editor: выполните миграции из папки [`supabase/migrations/`](./supabase/migrations/) **строго по порядку** `01` → `19` (инструкция внутри [`supabase/migrations/README.md`](./supabase/migrations/README.md)).
 4. Database → Publications: убедитесь, что `columns` и `tasks` в `supabase_realtime` (скрипты `11` и `17`).
 5. Создайте демо-пользователей (таблица выше).
 6. Вставьте `VITE_SUPABASE_*` в `.env` (локально) и в Environment Variables на Vercel (для деплоя).

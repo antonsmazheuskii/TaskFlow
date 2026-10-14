@@ -1,4 +1,3 @@
-import { createDefaultColumns } from './columnsService'
 import { supabase } from './supabaseClient'
 import type { Board } from '../types/board'
 
@@ -30,54 +29,32 @@ export async function fetchBoardById(boardId: string): Promise<Board> {
 }
 
 export async function createBoard(title: string): Promise<Board> {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError) {
-    throw userError
-  }
-
-  if (!user) {
-    throw new Error('Необходимо войти в аккаунт.')
-  }
-
   const trimmedTitle = title.trim()
 
   if (!trimmedTitle) {
     throw new Error('Введите название доски.')
   }
 
-  const { data: board, error: boardError } = await supabase
-    .from('boards')
-    .insert({ title: trimmedTitle, owner_id: user.id })
-    .select('id, title, owner_id, created_at')
-    .single()
-
-  if (boardError) {
-    throw boardError
-  }
-
-  const { error: memberError } = await supabase.from('board_members').insert({
-    board_id: board.id,
-    user_id: user.id,
-    role: 'owner',
+  const { data, error } = await supabase.rpc('create_board_with_defaults', {
+    p_title: trimmedTitle,
   })
 
-  if (memberError) {
-    await supabase.from('boards').delete().eq('id', board.id)
-    throw memberError
+  if (error) {
+    throw error
   }
 
-  try {
-    await createDefaultColumns(board.id)
-  } catch (columnsError) {
-    await supabase.from('boards').delete().eq('id', board.id)
-    throw columnsError
+  const row = (Array.isArray(data) ? data[0] : data) as Board | null | undefined
+
+  if (!row) {
+    throw new Error('Не удалось создать доску.')
   }
 
-  return board
+  return {
+    id: row.id,
+    title: row.title,
+    owner_id: row.owner_id,
+    created_at: row.created_at,
+  }
 }
 
 export async function deleteBoard(boardId: string): Promise<void> {

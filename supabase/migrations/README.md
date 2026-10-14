@@ -23,6 +23,7 @@
 | 16 | `16_fix_task_ordering.sql` | Атомарный move/reorder задач |
 | 17 | `17_fix_realtime_replica_identity.sql` | `REPLICA IDENTITY FULL` для DELETE |
 | 18 | `18_fix_tasks_update_constraints.sql` | created_by lock, same-board move, assignee ∈ members |
+| 19 | `19_fix_create_board_rpc.sql` | Атомарное создание доски + owner + колонки |
 
 ## Realtime
 
