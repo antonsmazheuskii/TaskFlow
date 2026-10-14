@@ -22,6 +22,7 @@
 | 15 | `15_fix_profiles_privacy.sql` | RLS профилей, sync email, RPC invite |
 | 16 | `16_fix_task_ordering.sql` | Атомарный move/reorder задач |
 | 17 | `17_fix_realtime_replica_identity.sql` | `REPLICA IDENTITY FULL` для DELETE |
+| 18 | `18_fix_tasks_update_constraints.sql` | created_by lock, same-board move, assignee ∈ members |
 
 ## Realtime
 
