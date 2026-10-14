@@ -104,13 +104,12 @@ vercel --prod   # Production
 - Загрузка аватара/файлов в Storage
 - Фильтры и поиск, activity log
 - Переключатель темы, Google OAuth, хоткеи
-- Автотесты критичных сценариев
-
 ## Скрипты
 
 ```bash
 npm run dev        # разработка
 npm run typecheck  # tsc strict
+npm run test       # vitest (хуки boards/tasks)
 npm run build      # tsc -b && vite build
 npm run preview
 npm run lint
