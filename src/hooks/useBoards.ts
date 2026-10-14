@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createBoard as createBoardRequest,
   deleteBoard as deleteBoardRequest,
   fetchMyBoards,
 } from '../services/boardsService'
+import { queryKeys } from '../lib/queryKeys'
 import type { Board } from '../types/board'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 type UseBoardsResult = {
   boards: Board[]
@@ -15,56 +17,52 @@ type UseBoardsResult = {
 }
 
 export function useBoards(): UseBoardsResult {
-  const [boards, setBoards] = useState<Board[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    let isMounted = true
+  const boardsQuery = useQuery({
+    queryKey: queryKeys.boards.list(),
+    queryFn: fetchMyBoards,
+  })
 
-    async function loadBoards() {
-      setIsLoading(true)
-      setError(null)
+  const createMutation = useMutation({
+    mutationFn: createBoardRequest,
+    onSuccess: (board) => {
+      queryClient.setQueryData<Board[]>(queryKeys.boards.list(), (current) =>
+        current ? [board, ...current] : [board],
+      )
+    },
+  })
 
-      try {
-        const data = await fetchMyBoards()
-
-        if (!isMounted) {
-          return
-        }
-
-        setBoards(data)
-      } catch (err) {
-        if (!isMounted) {
-          return
-        }
-
-        const message =
-          err instanceof Error ? err.message : 'Не удалось загрузить доски.'
-        setError(message)
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    void loadBoards()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  const deleteMutation = useMutation({
+    mutationFn: deleteBoardRequest,
+    onSuccess: (_data, boardId) => {
+      queryClient.setQueryData<Board[]>(queryKeys.boards.list(), (current) =>
+        (current ?? []).filter((board) => board.id !== boardId),
+      )
+      void queryClient.removeQueries({
+        queryKey: queryKeys.columns.byBoard(boardId),
+      })
+      void queryClient.removeQueries({
+        queryKey: queryKeys.tasks.byBoard(boardId),
+      })
+    },
+  })
 
   async function createBoard(title: string) {
-    const board = await createBoardRequest(title)
-    setBoards((current) => [board, ...current])
+    await createMutation.mutateAsync(title)
   }
 
   async function deleteBoard(boardId: string) {
-    await deleteBoardRequest(boardId)
-    setBoards((current) => current.filter((board) => board.id !== boardId))
+    await deleteMutation.mutateAsync(boardId)
   }
 
-  return { boards, isLoading, error, createBoard, deleteBoard }
+  return {
+    boards: boardsQuery.data ?? [],
+    isLoading: boardsQuery.isLoading,
+    error: boardsQuery.error
+      ? getErrorMessage(boardsQuery.error, 'Не удалось загрузить доски.')
+      : null,
+    createBoard,
+    deleteBoard,
+  }
 }

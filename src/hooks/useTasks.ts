@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createTask as createTaskRequest,
   deleteTask as deleteTaskRequest,
@@ -7,7 +7,9 @@ import {
   reorderTasksInColumn as reorderTasksInColumnRequest,
   updateTaskDetails as updateTaskDetailsRequest,
 } from '../services/tasksService'
+import { queryKeys } from '../lib/queryKeys'
 import type { Task, TaskDetailsUpdate } from '../types/task'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 type UseTasksResult = {
   tasks: Task[]
@@ -40,74 +42,53 @@ function sortByPosition(tasks: Task[]): Task[] {
 }
 
 export function useTasks(boardId: string | undefined): UseTasksResult {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+  const queryKey = boardId
+    ? queryKeys.tasks.byBoard(boardId)
+    : (['tasks', 'board', 'none'] as const)
 
-  useEffect(() => {
-    let isMounted = true
+  const tasksQuery = useQuery({
+    queryKey,
+    queryFn: () => fetchTasksByBoardId(boardId!),
+    enabled: Boolean(boardId),
+  })
 
-    async function loadTasks() {
-      if (!boardId) {
-        setTasks([])
-        setError(null)
-        setIsLoading(false)
-        return
-      }
-
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        const data = await fetchTasksByBoardId(boardId)
-
-        if (!isMounted) {
-          return
-        }
-
-        setTasks(data)
-      } catch (err) {
-        if (!isMounted) {
-          return
-        }
-
-        const message =
-          err instanceof Error ? err.message : 'Не удалось загрузить задачи.'
-        setError(message)
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    void loadTasks()
-
-    return () => {
-      isMounted = false
-    }
-  }, [boardId])
-
-  async function refetch() {
+  function getTasksCache(): Task[] {
     if (!boardId) {
-      setTasks([])
-      setError(null)
+      return []
+    }
+
+    return queryClient.getQueryData<Task[]>(queryKeys.tasks.byBoard(boardId)) ?? []
+  }
+
+  function setTasksCache(
+    updater: Task[] | ((current: Task[]) => Task[]),
+  ) {
+    if (!boardId) {
       return
     }
 
-    try {
-      const data = await fetchTasksByBoardId(boardId)
-      setTasks(data)
-      setError(null)
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Не удалось загрузить задачи.'
-      setError(message)
+    queryClient.setQueryData<Task[]>(
+      queryKeys.tasks.byBoard(boardId),
+      (current) => {
+        const list = current ?? []
+        return typeof updater === 'function' ? updater(list) : updater
+      },
+    )
+  }
+
+  async function refetch() {
+    if (!boardId) {
+      return
     }
+
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.tasks.byBoard(boardId),
+    })
   }
 
   function applyRealtimeInsert(task: Task) {
-    setTasks((current) => {
+    setTasksCache((current) => {
       if (current.some((item) => item.id === task.id)) {
         return current
       }
@@ -117,7 +98,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
   }
 
   function applyRealtimeUpdate(task: Task) {
-    setTasks((current) => {
+    setTasksCache((current) => {
       const exists = current.some((item) => item.id === task.id)
 
       if (!exists) {
@@ -129,26 +110,39 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
   }
 
   function applyRealtimeDelete(taskId: string) {
-    setTasks((current) => current.filter((item) => item.id !== taskId))
+    setTasksCache((current) => current.filter((item) => item.id !== taskId))
   }
 
   function applyRealtimeDeleteByColumn(columnId: string) {
-    setTasks((current) =>
+    setTasksCache((current) =>
       current.filter((item) => item.column_id !== columnId),
     )
   }
 
+  const createMutation = useMutation({
+    mutationFn: ({
+      columnId,
+      title,
+    }: {
+      columnId: string
+      title: string
+    }) => createTaskRequest(columnId, title),
+    onSuccess: (task) => {
+      setTasksCache((current) => [...current, task])
+    },
+  })
+
   async function createTask(columnId: string, title: string) {
-    const task = await createTaskRequest(columnId, title)
-    setTasks((current) => [...current, task])
+    await createMutation.mutateAsync({ columnId, title })
   }
 
   async function updateTaskDetails(
     taskId: string,
     details: TaskDetailsUpdate,
   ) {
-    const previousTasks = tasks
-    setTasks((current) =>
+    const previousTasks = getTasksCache()
+
+    setTasksCache((current) =>
       current.map((task) =>
         task.id === taskId
           ? {
@@ -165,11 +159,11 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
 
     try {
       const updatedTask = await updateTaskDetailsRequest(taskId, details)
-      setTasks((current) =>
+      setTasksCache((current) =>
         current.map((task) => (task.id === taskId ? updatedTask : task)),
       )
     } catch (err) {
-      setTasks(previousTasks)
+      setTasksCache(previousTasks)
       throw err
     }
   }
@@ -179,15 +173,15 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     targetColumnId: string,
     targetIndex?: number,
   ) {
-    const previousTasks = tasks
-    const movingTask = tasks.find((task) => task.id === taskId)
+    const previousTasks = getTasksCache()
+    const movingTask = previousTasks.find((task) => task.id === taskId)
 
     if (!movingTask || movingTask.column_id === targetColumnId) {
       return
     }
 
     const siblings = sortByPosition(
-      tasks.filter(
+      previousTasks.filter(
         (task) => task.column_id === targetColumnId && task.id !== taskId,
       ),
     )
@@ -202,7 +196,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
       ...siblings.slice(insertIndex),
     ].map((task, position) => ({ ...task, position }))
 
-    setTasks((current) => [
+    setTasksCache((current) => [
       ...current.filter(
         (task) =>
           task.id !== taskId && task.column_id !== targetColumnId,
@@ -221,7 +215,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
         affectedTasks.map((task) => task.column_id),
       )
 
-      setTasks((current) => [
+      setTasksCache((current) => [
         ...current.filter(
           (task) =>
             !affectedIds.has(task.id) &&
@@ -230,7 +224,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
         ...affectedTasks,
       ])
     } catch (err) {
-      setTasks(previousTasks)
+      setTasksCache(previousTasks)
       throw err
     }
   }
@@ -239,9 +233,9 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
     columnId: string,
     orderedTaskIds: string[],
   ) {
-    const previousTasks = tasks
+    const previousTasks = getTasksCache()
     const columnTaskMap = new Map(
-      tasks
+      previousTasks
         .filter((task) => task.column_id === columnId)
         .map((task) => [task.id, task]),
     )
@@ -253,7 +247,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
       })
       .filter((task): task is Task => task !== null)
 
-    setTasks((current) => [
+    setTasksCache((current) => [
       ...current.filter((task) => task.column_id !== columnId),
       ...optimistic,
     ])
@@ -263,32 +257,34 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
         columnId,
         orderedTaskIds,
       )
-      setTasks((current) => [
+      setTasksCache((current) => [
         ...current.filter((task) => task.column_id !== columnId),
         ...updatedTasks,
       ])
     } catch (err) {
-      setTasks(previousTasks)
+      setTasksCache(previousTasks)
       throw err
     }
   }
 
   async function deleteTask(taskId: string) {
-    const previousTasks = tasks
-    setTasks((current) => current.filter((task) => task.id !== taskId))
+    const previousTasks = getTasksCache()
+    setTasksCache((current) => current.filter((task) => task.id !== taskId))
 
     try {
       await deleteTaskRequest(taskId)
     } catch (err) {
-      setTasks(previousTasks)
+      setTasksCache(previousTasks)
       throw err
     }
   }
 
   return {
-    tasks,
-    isLoading,
-    error,
+    tasks: tasksQuery.data ?? [],
+    isLoading: tasksQuery.isLoading,
+    error: tasksQuery.error
+      ? getErrorMessage(tasksQuery.error, 'Не удалось загрузить задачи.')
+      : null,
     refetch,
     applyRealtimeInsert,
     applyRealtimeUpdate,
