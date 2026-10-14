@@ -20,6 +20,34 @@ type TaskDetailsFormProps = {
   onCancel: () => void
 }
 
+type FormSnapshot = {
+  title: string
+  description: string
+  priority: TaskPriority
+  dueDate: string
+  assigneeId: string
+}
+
+function snapshotFromTask(task: Task): FormSnapshot {
+  return {
+    title: task.title,
+    description: task.description ?? '',
+    priority: task.priority,
+    dueDate: task.due_date ?? '',
+    assigneeId: task.assignee_id ?? '',
+  }
+}
+
+function snapshotsEqual(a: FormSnapshot, b: FormSnapshot): boolean {
+  return (
+    a.title === b.title &&
+    a.description === b.description &&
+    a.priority === b.priority &&
+    a.dueDate === b.dueDate &&
+    a.assigneeId === b.assigneeId
+  )
+}
+
 export function TaskDetailsForm({
   task,
   members,
@@ -27,20 +55,56 @@ export function TaskDetailsForm({
   onSave,
   onCancel,
 }: TaskDetailsFormProps) {
-  const [title, setTitle] = useState(task.title)
-  const [description, setDescription] = useState(task.description ?? '')
-  const [priority, setPriority] = useState<TaskPriority>(task.priority)
-  const [dueDate, setDueDate] = useState(task.due_date ?? '')
-  const [assigneeId, setAssigneeId] = useState(task.assignee_id ?? '')
+  const initial = snapshotFromTask(task)
+  const [title, setTitle] = useState(initial.title)
+  const [description, setDescription] = useState(initial.description)
+  const [priority, setPriority] = useState<TaskPriority>(initial.priority)
+  const [dueDate, setDueDate] = useState(initial.dueDate)
+  const [assigneeId, setAssigneeId] = useState(initial.assigneeId)
+  const [baseline, setBaseline] = useState<FormSnapshot>(initial)
+  const [syncedTaskId, setSyncedTaskId] = useState(task.id)
+  const [remoteConflict, setRemoteConflict] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const draft: FormSnapshot = {
+    title,
+    description,
+    priority,
+    dueDate,
+    assigneeId,
+  }
+  const isDirty = !snapshotsEqual(draft, baseline)
+
+  function applySnapshot(snapshot: FormSnapshot) {
+    setTitle(snapshot.title)
+    setDescription(snapshot.description)
+    setPriority(snapshot.priority)
+    setDueDate(snapshot.dueDate)
+    setAssigneeId(snapshot.assigneeId)
+    setBaseline(snapshot)
+    setRemoteConflict(false)
+  }
+
   useEffect(() => {
-    setTitle(task.title)
-    setDescription(task.description ?? '')
-    setPriority(task.priority)
-    setDueDate(task.due_date ?? '')
-    setAssigneeId(task.assignee_id ?? '')
-  }, [task])
+    const next = snapshotFromTask(task)
+
+    if (task.id !== syncedTaskId) {
+      applySnapshot(next)
+      setSyncedTaskId(task.id)
+      return
+    }
+
+    if (snapshotsEqual(next, baseline)) {
+      return
+    }
+
+    if (isDirty) {
+      setRemoteConflict(true)
+      return
+    }
+
+    applySnapshot(next)
+  }, [task, syncedTaskId, baseline, isDirty])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -61,6 +125,13 @@ export function TaskDetailsForm({
         due_date: dueDate ? dueDate : null,
         assignee_id: assigneeId ? assigneeId : null,
       })
+      applySnapshot({
+        title: trimmedTitle,
+        description: description.trim(),
+        priority,
+        dueDate,
+        assigneeId,
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -68,6 +139,26 @@ export function TaskDetailsForm({
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      {remoteConflict ? (
+        <div
+          className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100"
+          role="status"
+        >
+          <p>
+            Задача изменена другим пользователем. Несохранённые правки сохранены
+            в форме.
+          </p>
+          <button
+            className={`${ui.btnSecondary} mt-2 !min-h-0 px-3 py-1.5 text-xs`}
+            type="button"
+            onClick={() => applySnapshot(snapshotFromTask(task))}
+            disabled={isSubmitting}
+          >
+            Загрузить серверную версию
+          </button>
+        </div>
+      ) : null}
+
       <label className="flex flex-col gap-1.5">
         <span className={ui.label}>Название</span>
         <input
