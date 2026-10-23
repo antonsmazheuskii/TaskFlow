@@ -8,6 +8,7 @@ import {
   updateTaskDetails as updateTaskDetailsRequest,
 } from '../services/tasksService'
 import { queryKeys } from '../lib/queryKeys'
+import { useAuth } from '../providers/AuthProvider'
 import type { Task, TaskDetailsUpdate } from '../types/task'
 import { getErrorMessage } from '../utils/getErrorMessage'
 
@@ -43,48 +44,36 @@ function sortByPosition(tasks: Task[]): Task[] {
 
 export function useTasks(boardId: string | undefined): UseTasksResult {
   const queryClient = useQueryClient()
-  const queryKey = boardId
-    ? queryKeys.tasks.byBoard(boardId)
-    : (['tasks', 'board', 'none'] as const)
+  const { user } = useAuth()
+  const userId = user?.id ?? null
+  const tasksKey = queryKeys.tasks.byBoard(userId, boardId ?? null)
+  const isEnabled = userId !== null && boardId !== undefined
 
   const tasksQuery = useQuery({
-    queryKey,
-    queryFn: () => fetchTasksByBoardId(boardId!),
-    enabled: Boolean(boardId),
+    queryKey: tasksKey,
+    queryFn: () => fetchTasksByBoardId(boardId as string),
+    enabled: isEnabled,
   })
 
   function getTasksCache(): Task[] {
-    if (!boardId) {
-      return []
-    }
-
-    return queryClient.getQueryData<Task[]>(queryKeys.tasks.byBoard(boardId)) ?? []
+    return queryClient.getQueryData<Task[]>(tasksKey) ?? []
   }
 
   function setTasksCache(
     updater: Task[] | ((current: Task[]) => Task[]),
   ) {
-    if (!boardId) {
-      return
-    }
-
-    queryClient.setQueryData<Task[]>(
-      queryKeys.tasks.byBoard(boardId),
-      (current) => {
-        const list = current ?? []
-        return typeof updater === 'function' ? updater(list) : updater
-      },
-    )
+    queryClient.setQueryData<Task[]>(tasksKey, (current) => {
+      const list = current ?? []
+      return typeof updater === 'function' ? updater(list) : updater
+    })
   }
 
   async function refetch() {
-    if (!boardId) {
+    if (!isEnabled) {
       return
     }
 
-    await queryClient.invalidateQueries({
-      queryKey: queryKeys.tasks.byBoard(boardId),
-    })
+    await queryClient.invalidateQueries({ queryKey: tasksKey })
   }
 
   function applyRealtimeInsert(task: Task) {

@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import { useQueryClient } from '@tanstack/react-query'
+import { signOut as signOutRequest } from '../services/authService'
 import { ensureUserProfile } from '../services/profilesService'
 import { supabase } from '../services/supabaseClient'
 import { getErrorMessage } from '../utils/getErrorMessage'
@@ -20,6 +22,7 @@ type AuthContextValue = {
   profileReady: boolean
   profileError: string | null
   retryProfileSync: () => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -30,12 +33,31 @@ type AuthProviderProps = {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { notifyError } = useNotification()
+  const queryClient = useQueryClient()
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [profileReady, setProfileReady] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const profileErrorNotifiedRef = useRef(false)
   const sessionRef = useRef<Session | null>(null)
+  const knownUserIdRef = useRef<string | null | undefined>(undefined)
+
+  const applySession = useCallback(
+    (nextSession: Session | null) => {
+      const nextUserId = nextSession?.user.id ?? null
+      const previousUserId = knownUserIdRef.current
+
+      if (previousUserId !== undefined && previousUserId !== nextUserId) {
+        queryClient.clear()
+      }
+
+      knownUserIdRef.current = nextUserId
+      sessionRef.current = nextSession
+      setSession(nextSession)
+      setIsLoading(false)
+    },
+    [queryClient],
+  )
 
   const syncProfile = useCallback(
     async (nextSession: Session | null) => {
@@ -76,6 +98,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await syncProfile(sessionRef.current)
   }, [syncProfile])
 
+  const signOut = useCallback(async () => {
+    await queryClient.cancelQueries()
+    await signOutRequest()
+    queryClient.clear()
+  }, [queryClient])
+
   useEffect(() => {
     let isMounted = true
 
@@ -84,18 +112,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      sessionRef.current = data.session
-      setSession(data.session)
-      setIsLoading(false)
+      applySession(data.session)
       void syncProfile(data.session)
     })
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      sessionRef.current = nextSession
-      setSession(nextSession)
-      setIsLoading(false)
+      applySession(nextSession)
       void syncProfile(nextSession)
     })
 
@@ -103,7 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [syncProfile])
+  }, [applySession, syncProfile])
 
   const value: AuthContextValue = {
     session,
@@ -112,6 +136,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     profileReady,
     profileError,
     retryProfileSync,
+    signOut,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

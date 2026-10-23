@@ -1,5 +1,5 @@
--- Комментарии к задачам + RLS для участников доски.
--- Выполнить после tasks.sql и profiles_and_assignees.sql (нужна is_board_member).
+-- 09. Комментарии к задачам + RLS для участников доски.
+-- Выполнить после 06_tasks.sql. is_board_member объявлена в 01_boards.sql.
 
 create table if not exists comments (
   id         uuid primary key default gen_random_uuid(),
@@ -10,6 +10,10 @@ create table if not exists comments (
 );
 
 alter table comments enable row level security;
+
+revoke all on table comments from anon;
+grant select, insert, delete on table comments to authenticated;
+grant all on table comments to service_role;
 
 drop policy if exists "Members can view comments" on comments;
 create policy "Members can view comments"

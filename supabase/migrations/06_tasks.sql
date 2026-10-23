@@ -1,5 +1,5 @@
--- Таблица tasks + политики select/insert для участников доски.
--- Выполнить в SQL Editor после columns.sql
+-- 06. Таблица tasks + политики CRUD для участников доски.
+-- Выполнить после 04_columns.sql.
 
 create table if not exists tasks (
   id          uuid primary key default gen_random_uuid(),
@@ -15,6 +15,10 @@ create table if not exists tasks (
 );
 
 alter table tasks enable row level security;
+
+revoke all on table tasks from anon;
+grant select, insert, update, delete on table tasks to authenticated;
+grant all on table tasks to service_role;
 
 drop policy if exists "Members can view tasks" on tasks;
 create policy "Members can view tasks"

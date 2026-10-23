@@ -1,5 +1,5 @@
--- Таблица columns + политики CRUD для участников доски.
--- Выполнить в SQL Editor после boards.sql / boards_mutations.sql
+-- 04. Таблица columns + политики CRUD для участников доски.
+-- Выполнить после 01_boards.sql (нужна is_board_member).
 
 create table if not exists columns (
   id        uuid primary key default gen_random_uuid(),
@@ -9,6 +9,10 @@ create table if not exists columns (
 );
 
 alter table columns enable row level security;
+
+revoke all on table columns from anon;
+grant select, insert, update, delete on table columns to authenticated;
+grant all on table columns to service_role;
 
 drop policy if exists "Members can view columns" on columns;
 create policy "Members can view columns"

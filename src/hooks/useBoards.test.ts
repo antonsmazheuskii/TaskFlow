@@ -4,6 +4,14 @@ import { useBoards } from '../hooks/useBoards'
 import { renderHookWithQuery } from '../test/renderHookWithQuery'
 import type { Board } from '../types/board'
 
+const authState = vi.hoisted(() => ({ userId: 'user-1' as string | null }))
+
+vi.mock('../providers/AuthProvider', () => ({
+  useAuth: () => ({
+    user: authState.userId ? { id: authState.userId } : null,
+  }),
+}))
+
 vi.mock('../services/boardsService', () => ({
   fetchMyBoards: vi.fn(),
   createBoard: vi.fn(),
@@ -33,6 +41,51 @@ function makeBoard(overrides: Partial<Board> = {}): Board {
 describe('useBoards', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    authState.userId = 'user-1'
+  })
+
+  it('does not fetch without authenticated user', async () => {
+    authState.userId = null
+
+    const { result } = renderHookWithQuery(() => useBoards())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.boards).toEqual([])
+    expect(fetchMyBoardsMock).not.toHaveBeenCalled()
+  })
+
+  it('does not expose previous user cache to another user', async () => {
+    const firstUserBoards = [makeBoard({ id: 'board-u1', title: 'User 1' })]
+    const secondUserBoards = [makeBoard({ id: 'board-u2', title: 'User 2' })]
+    fetchMyBoardsMock.mockResolvedValueOnce(firstUserBoards)
+
+    const { result, rerender, queryClient } = renderHookWithQuery(() =>
+      useBoards(),
+    )
+
+    await waitFor(() => {
+      expect(result.current.boards).toEqual(firstUserBoards)
+    })
+
+    fetchMyBoardsMock.mockResolvedValueOnce(secondUserBoards)
+    authState.userId = 'user-2'
+    rerender()
+
+    expect(result.current.boards).toEqual([])
+
+    await waitFor(() => {
+      expect(result.current.boards).toEqual(secondUserBoards)
+    })
+
+    expect(queryClient.getQueryData(['user', 'user-1', 'boards', 'list'])).toEqual(
+      firstUserBoards,
+    )
+    expect(queryClient.getQueryData(['user', 'user-2', 'boards', 'list'])).toEqual(
+      secondUserBoards,
+    )
   })
 
   it('loads boards into cache', async () => {

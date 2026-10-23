@@ -1,5 +1,5 @@
--- Профили + политики для выбора исполнителя.
--- Функция is_board_member нужна, чтобы участники видели друг друга без RLS-рекурсии.
+-- 10. Профили + политики для выбора исполнителя.
+-- is_board_member и SELECT-политика board_members объявлены в 01_boards.sql.
 
 create table if not exists profiles (
   id         uuid primary key references auth.users(id) on delete cascade,
@@ -9,6 +9,10 @@ create table if not exists profiles (
 );
 
 alter table profiles enable row level security;
+
+revoke all on table profiles from anon;
+grant select, insert, update on table profiles to authenticated;
+grant all on table profiles to service_role;
 
 drop policy if exists "Authenticated users can view profiles" on profiles;
 create policy "Authenticated users can view profiles"
@@ -28,27 +32,3 @@ create policy "Users can update own profile"
   to authenticated
   using (id = auth.uid())
   with check (id = auth.uid());
-
-create or replace function public.is_board_member(p_board_id uuid)
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select exists (
-    select 1
-    from board_members
-    where board_id = p_board_id
-      and user_id = auth.uid()
-  );
-$$;
-
-revoke all on function public.is_board_member(uuid) from public;
-grant execute on function public.is_board_member(uuid) to authenticated;
-
-drop policy if exists "Users can view their board memberships" on board_members;
-drop policy if exists "Members can view fellow board members" on board_members;
-create policy "Members can view fellow board members"
-  on board_members for select
-  using (public.is_board_member(board_id));

@@ -1,5 +1,5 @@
--- Политики создания и удаления досок.
--- Выполнить в SQL Editor после supabase/boards.sql
+-- 02. Политики создания и удаления досок.
+-- Выполнить после 01_boards.sql.
 
 drop policy if exists "Users can create boards" on boards;
 create policy "Users can create boards"

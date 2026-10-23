@@ -5,7 +5,7 @@
 
 | № | Файл | Назначение |
 | --- | --- | --- |
-| 01 | `01_boards.sql` | Таблицы `boards`, `board_members`, базовые RLS |
+| 01 | `01_boards.sql` | GRANT на схему, таблицы `boards`, `board_members`, helper-функции `is_board_member` / `is_board_owner`, базовые RLS |
 | 02 | `02_boards_mutations.sql` | Политики создания доски / участника |
 | 03 | `03_fix_boards_select_policy.sql` | SELECT доски для owner + членства |
 | 04 | `04_columns.sql` | Таблица `columns` + RLS |
@@ -14,16 +14,22 @@
 | 07 | `07_tasks_mutations.sql` | Update/delete задач |
 | 08 | `08_tasks_details.sql` | Поля деталей задачи (если отдельно) |
 | 09 | `09_comments.sql` | Комментарии + RLS |
-| 10 | `10_profiles_and_assignees.sql` | `profiles`, `is_board_member` |
+| 10 | `10_profiles_and_assignees.sql` | Таблица `profiles` + RLS |
 | 11 | `11_realtime.sql` | Publication Realtime для `columns`, `tasks` |
 | 12 | `12_board_invites.sql` | Email в profiles, invite INSERT |
-| 13 | `13_board_roles.sql` | Только owner меняет колонки |
+| 13 | `13_board_roles.sql` | Политики колонок: только owner |
 | 14 | `14_board_member_management.sql` | Owner удаляет участников |
 | 15 | `15_fix_profiles_privacy.sql` | RLS профилей, sync email, RPC invite |
 | 16 | `16_fix_task_ordering.sql` | Атомарный move/reorder задач |
 | 17 | `17_fix_realtime_replica_identity.sql` | `REPLICA IDENTITY FULL` для DELETE |
 | 18 | `18_fix_tasks_update_constraints.sql` | created_by lock, same-board move, assignee ∈ members |
 | 19 | `19_fix_create_board_rpc.sql` | Атомарное создание доски + owner + колонки |
+| 20 | `20_grants.sql` | Идемпотентная сверка GRANT/REVOKE для `anon` / `authenticated` / `service_role` |
+
+## Привилегии
+
+Каждая таблица получает явные `GRANT` в миграции, где создаётся (01, 04, 06, 09, 10); `anon` — `REVOKE ALL`.
+`20_grants.sql` повторяет их целиком — запускать на проектах, где 01–19 применялись до появления явных GRANT.
 
 ## Realtime
 

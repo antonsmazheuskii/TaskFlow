@@ -4,6 +4,10 @@ import { useTasks } from '../hooks/useTasks'
 import { renderHookWithQuery } from '../test/renderHookWithQuery'
 import type { Task } from '../types/task'
 
+vi.mock('../providers/AuthProvider', () => ({
+  useAuth: () => ({ user: { id: 'user-1' } }),
+}))
+
 vi.mock('../services/tasksService', () => ({
   fetchTasksByBoardId: vi.fn(),
   createTask: vi.fn(),

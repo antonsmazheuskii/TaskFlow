@@ -1,22 +1,5 @@
--- Роли: только owner меняет колонки. Members — задачи (уже покрыто политиками tasks).
-
-create or replace function public.is_board_owner(p_board_id uuid)
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select exists (
-    select 1
-    from boards
-    where id = p_board_id
-      and owner_id = auth.uid()
-  );
-$$;
-
-revoke all on function public.is_board_owner(uuid) from public;
-grant execute on function public.is_board_owner(uuid) to authenticated;
+-- 13. Роли: только owner меняет колонки. Members — задачи (уже покрыто политиками tasks).
+-- is_board_owner объявлена в 01_boards.sql.
 
 drop policy if exists "Members can create columns" on columns;
 drop policy if exists "Owners can create columns" on columns;

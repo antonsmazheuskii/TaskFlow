@@ -5,6 +5,7 @@ import {
   fetchMyBoards,
 } from '../services/boardsService'
 import { queryKeys } from '../lib/queryKeys'
+import { useAuth } from '../providers/AuthProvider'
 import type { Board } from '../types/board'
 import { getErrorMessage } from '../utils/getErrorMessage'
 
@@ -18,16 +19,20 @@ type UseBoardsResult = {
 
 export function useBoards(): UseBoardsResult {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const userId = user?.id ?? null
+  const listKey = queryKeys.boards.list(userId)
 
   const boardsQuery = useQuery({
-    queryKey: queryKeys.boards.list(),
+    queryKey: listKey,
     queryFn: fetchMyBoards,
+    enabled: userId !== null,
   })
 
   const createMutation = useMutation({
     mutationFn: createBoardRequest,
     onSuccess: (board) => {
-      queryClient.setQueryData<Board[]>(queryKeys.boards.list(), (current) =>
+      queryClient.setQueryData<Board[]>(listKey, (current) =>
         current ? [board, ...current] : [board],
       )
     },
@@ -36,14 +41,14 @@ export function useBoards(): UseBoardsResult {
   const deleteMutation = useMutation({
     mutationFn: deleteBoardRequest,
     onSuccess: (_data, boardId) => {
-      queryClient.setQueryData<Board[]>(queryKeys.boards.list(), (current) =>
+      queryClient.setQueryData<Board[]>(listKey, (current) =>
         (current ?? []).filter((board) => board.id !== boardId),
       )
-      void queryClient.removeQueries({
-        queryKey: queryKeys.columns.byBoard(boardId),
+      queryClient.removeQueries({
+        queryKey: queryKeys.columns.byBoard(userId, boardId),
       })
-      void queryClient.removeQueries({
-        queryKey: queryKeys.tasks.byBoard(boardId),
+      queryClient.removeQueries({
+        queryKey: queryKeys.tasks.byBoard(userId, boardId),
       })
     },
   })

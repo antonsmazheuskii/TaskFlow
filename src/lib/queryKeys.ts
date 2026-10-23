@@ -1,16 +1,19 @@
+type UserId = string | null
+
 export const queryKeys = {
+  user: (userId: UserId) => ['user', userId] as const,
   boards: {
-    all: ['boards'] as const,
-    list: () => [...queryKeys.boards.all, 'list'] as const,
+    all: (userId: UserId) => [...queryKeys.user(userId), 'boards'] as const,
+    list: (userId: UserId) => [...queryKeys.boards.all(userId), 'list'] as const,
   },
   columns: {
-    all: ['columns'] as const,
-    byBoard: (boardId: string) =>
-      [...queryKeys.columns.all, 'board', boardId] as const,
+    all: (userId: UserId) => [...queryKeys.user(userId), 'columns'] as const,
+    byBoard: (userId: UserId, boardId: UserId) =>
+      [...queryKeys.columns.all(userId), 'board', boardId] as const,
   },
   tasks: {
-    all: ['tasks'] as const,
-    byBoard: (boardId: string) =>
-      [...queryKeys.tasks.all, 'board', boardId] as const,
+    all: (userId: UserId) => [...queryKeys.user(userId), 'tasks'] as const,
+    byBoard: (userId: UserId, boardId: UserId) =>
+      [...queryKeys.tasks.all(userId), 'board', boardId] as const,
   },
 } as const

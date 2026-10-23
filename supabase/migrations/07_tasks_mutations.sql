@@ -1,5 +1,5 @@
--- Политики update/delete для задач.
--- Выполнить после supabase/tasks.sql
+-- 07. Политики update/delete для задач.
+-- Выполнить после 06_tasks.sql.
 
 drop policy if exists "Members can update tasks" on tasks;
 create policy "Members can update tasks"

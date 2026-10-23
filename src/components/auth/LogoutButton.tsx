@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../providers/AuthProvider'
 import { useNotification } from '../../providers/NotificationProvider'
-import { signOut } from '../../services/authService'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import { ui } from '../../lib/ui'
 
 export function LogoutButton() {
   const navigate = useNavigate()
+  const { signOut } = useAuth()
   const { notifyError } = useNotification()
   const [isSubmitting, setIsSubmitting] = useState(false)
 

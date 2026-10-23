@@ -6,6 +6,7 @@ import {
   renameColumn as renameColumnRequest,
 } from '../services/columnsService'
 import { queryKeys } from '../lib/queryKeys'
+import { useAuth } from '../providers/AuthProvider'
 import type { Column } from '../types/column'
 import type { Task } from '../types/task'
 import { getErrorMessage } from '../utils/getErrorMessage'
@@ -29,15 +30,24 @@ function sortColumns(columns: Column[]): Column[] {
 
 export function useColumns(boardId: string | undefined): UseColumnsResult {
   const queryClient = useQueryClient()
-  const queryKey = boardId
-    ? queryKeys.columns.byBoard(boardId)
-    : (['columns', 'board', 'none'] as const)
+  const { user } = useAuth()
+  const userId = user?.id ?? null
+  const scopedBoardId = boardId ?? null
+  const columnsKey = queryKeys.columns.byBoard(userId, scopedBoardId)
+  const tasksKey = queryKeys.tasks.byBoard(userId, scopedBoardId)
+  const isEnabled = userId !== null && boardId !== undefined
 
   const columnsQuery = useQuery({
-    queryKey,
-    queryFn: () => fetchColumnsByBoardId(boardId!),
-    enabled: Boolean(boardId),
+    queryKey: columnsKey,
+    queryFn: () => fetchColumnsByBoardId(boardId as string),
+    enabled: isEnabled,
   })
+
+  function setColumnsCache(updater: (current: Column[]) => Column[]) {
+    queryClient.setQueryData<Column[]>(columnsKey, (current) =>
+      updater(current ?? []),
+    )
+  }
 
   const createMutation = useMutation({
     mutationFn: (title: string) => {
@@ -48,14 +58,7 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
       return createColumnRequest(boardId, title)
     },
     onSuccess: (column) => {
-      if (!boardId) {
-        return
-      }
-
-      queryClient.setQueryData<Column[]>(
-        queryKeys.columns.byBoard(boardId),
-        (current) => sortColumns([...(current ?? []), column]),
-      )
+      setColumnsCache((current) => sortColumns([...current, column]))
     },
   })
 
@@ -68,18 +71,10 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
       title: string
     }) => renameColumnRequest(columnId, title),
     onSuccess: (column) => {
-      if (!boardId) {
-        return
-      }
-
-      queryClient.setQueryData<Column[]>(
-        queryKeys.columns.byBoard(boardId),
-        (current) =>
-          sortColumns(
-            (current ?? []).map((item) =>
-              item.id === column.id ? column : item,
-            ),
-          ),
+      setColumnsCache((current) =>
+        sortColumns(
+          current.map((item) => (item.id === column.id ? column : item)),
+        ),
       )
     },
   })
@@ -87,81 +82,50 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
   const deleteMutation = useMutation({
     mutationFn: deleteColumnRequest,
     onSuccess: (_data, columnId) => {
-      if (!boardId) {
-        return
-      }
-
-      queryClient.setQueryData<Column[]>(
-        queryKeys.columns.byBoard(boardId),
-        (current) => (current ?? []).filter((item) => item.id !== columnId),
+      setColumnsCache((current) =>
+        current.filter((item) => item.id !== columnId),
       )
-      queryClient.setQueryData<Task[]>(
-        queryKeys.tasks.byBoard(boardId),
-        (current) =>
-          (current ?? []).filter((task) => task.column_id !== columnId),
+      queryClient.setQueryData<Task[]>(tasksKey, (current) =>
+        (current ?? []).filter((task) => task.column_id !== columnId),
       )
     },
   })
 
   async function refetch() {
-    if (!boardId) {
+    if (!isEnabled) {
       return
     }
 
-    await queryClient.invalidateQueries({
-      queryKey: queryKeys.columns.byBoard(boardId),
-    })
+    await queryClient.invalidateQueries({ queryKey: columnsKey })
   }
 
   function applyRealtimeInsert(column: Column) {
-    if (!boardId) {
-      return
-    }
+    setColumnsCache((current) => {
+      if (current.some((item) => item.id === column.id)) {
+        return current
+      }
 
-    queryClient.setQueryData<Column[]>(
-      queryKeys.columns.byBoard(boardId),
-      (current) => {
-        const list = current ?? []
-
-        if (list.some((item) => item.id === column.id)) {
-          return list
-        }
-
-        return sortColumns([...list, column])
-      },
-    )
+      return sortColumns([...current, column])
+    })
   }
 
   function applyRealtimeUpdate(column: Column) {
-    if (!boardId) {
-      return
-    }
+    setColumnsCache((current) => {
+      const exists = current.some((item) => item.id === column.id)
 
-    queryClient.setQueryData<Column[]>(
-      queryKeys.columns.byBoard(boardId),
-      (current) => {
-        const list = current ?? []
-        const exists = list.some((item) => item.id === column.id)
+      if (!exists) {
+        return sortColumns([...current, column])
+      }
 
-        if (!exists) {
-          return sortColumns([...list, column])
-        }
-
-        return sortColumns(
-          list.map((item) => (item.id === column.id ? column : item)),
-        )
-      },
-    )
+      return sortColumns(
+        current.map((item) => (item.id === column.id ? column : item)),
+      )
+    })
   }
 
   function applyRealtimeDelete(columnId: string) {
-    if (!boardId) {
-      return
-    }
-
-    queryClient.setQueryData<Column[]>(
-      queryKeys.columns.byBoard(boardId),
-      (current) => (current ?? []).filter((item) => item.id !== columnId),
+    setColumnsCache((current) =>
+      current.filter((item) => item.id !== columnId),
     )
   }
 
