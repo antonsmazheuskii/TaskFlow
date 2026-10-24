@@ -56,26 +56,12 @@ export async function createTask(
     throw new Error('Необходимо войти в аккаунт.')
   }
 
-  const { data: existing, error: existingError } = await supabase
-    .from('tasks')
-    .select('position')
-    .eq('column_id', columnId)
-    .order('position', { ascending: false })
-    .limit(1)
-
-  if (existingError) {
-    throw existingError
-  }
-
-  const nextPosition =
-    existing && existing.length > 0 ? existing[0].position + 1 : 0
-
+  // position назначает BEFORE INSERT триггер (см. миграцию 22).
   const { data, error } = await supabase
     .from('tasks')
     .insert({
       column_id: columnId,
       title: trimmedTitle,
-      position: nextPosition,
       created_by: user.id,
     })
     .select(TASK_SELECT)

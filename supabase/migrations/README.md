@@ -25,11 +25,18 @@
 | 18 | `18_fix_tasks_update_constraints.sql` | created_by lock, same-board move, assignee ∈ members |
 | 19 | `19_fix_create_board_rpc.sql` | Атомарное создание доски + owner + колонки |
 | 20 | `20_grants.sql` | Идемпотентная сверка GRANT/REVOKE для `anon` / `authenticated` / `service_role` |
+| 21 | `21_profiles_email_column_privileges.sql` | Column-level privileges: `profiles.email` недоступен клиенту |
+| 22 | `22_server_side_positions.sql` | `position` назначается триггером под advisory-lock + deferred UNIQUE |
 
 ## Привилегии
 
 Каждая таблица получает явные `GRANT` в миграции, где создаётся (01, 04, 06, 09, 10); `anon` — `REVOKE ALL`.
 `20_grants.sql` повторяет их целиком — запускать на проектах, где 01–19 применялись до появления явных GRANT.
+
+`profiles` выдаётся только по колонкам `id, name, avatar_url`: RLS фильтрует строки, но не колонки, поэтому
+`email` коллег по доске иначе был бы доступен через REST. Поиск пользователя по email — только внутри
+security definer RPC `invite_board_member` (lookup в `auth.users`). Клиент обязан перечислять колонки явно
+(`select('id, name, avatar_url')`) — `select('*')` на `profiles` вернёт `permission denied`.
 
 ## Realtime
 

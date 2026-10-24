@@ -10,6 +10,7 @@ import {
 import { queryKeys } from '../lib/queryKeys'
 import { useAuth } from '../providers/AuthProvider'
 import type { Task, TaskDetailsUpdate } from '../types/task'
+import { removeById, upsertById } from '../utils/collections'
 import { getErrorMessage } from '../utils/getErrorMessage'
 
 type UseTasksResult = {
@@ -77,29 +78,15 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
   }
 
   function applyRealtimeInsert(task: Task) {
-    setTasksCache((current) => {
-      if (current.some((item) => item.id === task.id)) {
-        return current
-      }
-
-      return [...current, task]
-    })
+    setTasksCache((current) => upsertById(current, task))
   }
 
   function applyRealtimeUpdate(task: Task) {
-    setTasksCache((current) => {
-      const exists = current.some((item) => item.id === task.id)
-
-      if (!exists) {
-        return [...current, task]
-      }
-
-      return current.map((item) => (item.id === task.id ? task : item))
-    })
+    setTasksCache((current) => upsertById(current, task))
   }
 
   function applyRealtimeDelete(taskId: string) {
-    setTasksCache((current) => current.filter((item) => item.id !== taskId))
+    setTasksCache((current) => removeById(current, taskId))
   }
 
   function applyRealtimeDeleteByColumn(columnId: string) {
@@ -117,7 +104,7 @@ export function useTasks(boardId: string | undefined): UseTasksResult {
       title: string
     }) => createTaskRequest(columnId, title),
     onSuccess: (task) => {
-      setTasksCache((current) => [...current, task])
+      setTasksCache((current) => upsertById(current, task))
     },
   })
 

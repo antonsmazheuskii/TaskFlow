@@ -7,6 +7,7 @@ import {
 import { queryKeys } from '../lib/queryKeys'
 import { useAuth } from '../providers/AuthProvider'
 import type { Board } from '../types/board'
+import { removeById } from '../utils/collections'
 import { getErrorMessage } from '../utils/getErrorMessage'
 
 type UseBoardsResult = {
@@ -32,9 +33,10 @@ export function useBoards(): UseBoardsResult {
   const createMutation = useMutation({
     mutationFn: createBoardRequest,
     onSuccess: (board) => {
-      queryClient.setQueryData<Board[]>(listKey, (current) =>
-        current ? [board, ...current] : [board],
-      )
+      queryClient.setQueryData<Board[]>(listKey, (current) => {
+        const rest = removeById(current ?? [], board.id)
+        return [board, ...rest]
+      })
     },
   })
 
@@ -42,7 +44,7 @@ export function useBoards(): UseBoardsResult {
     mutationFn: deleteBoardRequest,
     onSuccess: (_data, boardId) => {
       queryClient.setQueryData<Board[]>(listKey, (current) =>
-        (current ?? []).filter((board) => board.id !== boardId),
+        removeById(current ?? [], boardId),
       )
       queryClient.removeQueries({
         queryKey: queryKeys.columns.byBoard(userId, boardId),

@@ -9,6 +9,7 @@ import { queryKeys } from '../lib/queryKeys'
 import { useAuth } from '../providers/AuthProvider'
 import type { Column } from '../types/column'
 import type { Task } from '../types/task'
+import { removeById, upsertById } from '../utils/collections'
 import { getErrorMessage } from '../utils/getErrorMessage'
 
 type UseColumnsResult = {
@@ -58,7 +59,7 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
       return createColumnRequest(boardId, title)
     },
     onSuccess: (column) => {
-      setColumnsCache((current) => sortColumns([...current, column]))
+      setColumnsCache((current) => sortColumns(upsertById(current, column)))
     },
   })
 
@@ -71,20 +72,14 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
       title: string
     }) => renameColumnRequest(columnId, title),
     onSuccess: (column) => {
-      setColumnsCache((current) =>
-        sortColumns(
-          current.map((item) => (item.id === column.id ? column : item)),
-        ),
-      )
+      setColumnsCache((current) => sortColumns(upsertById(current, column)))
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteColumnRequest,
     onSuccess: (_data, columnId) => {
-      setColumnsCache((current) =>
-        current.filter((item) => item.id !== columnId),
-      )
+      setColumnsCache((current) => removeById(current, columnId))
       queryClient.setQueryData<Task[]>(tasksKey, (current) =>
         (current ?? []).filter((task) => task.column_id !== columnId),
       )
@@ -100,33 +95,15 @@ export function useColumns(boardId: string | undefined): UseColumnsResult {
   }
 
   function applyRealtimeInsert(column: Column) {
-    setColumnsCache((current) => {
-      if (current.some((item) => item.id === column.id)) {
-        return current
-      }
-
-      return sortColumns([...current, column])
-    })
+    setColumnsCache((current) => sortColumns(upsertById(current, column)))
   }
 
   function applyRealtimeUpdate(column: Column) {
-    setColumnsCache((current) => {
-      const exists = current.some((item) => item.id === column.id)
-
-      if (!exists) {
-        return sortColumns([...current, column])
-      }
-
-      return sortColumns(
-        current.map((item) => (item.id === column.id ? column : item)),
-      )
-    })
+    setColumnsCache((current) => sortColumns(upsertById(current, column)))
   }
 
   function applyRealtimeDelete(columnId: string) {
-    setColumnsCache((current) =>
-      current.filter((item) => item.id !== columnId),
-    )
+    setColumnsCache((current) => removeById(current, columnId))
   }
 
   return {

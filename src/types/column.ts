@@ -4,5 +4,3 @@ export type Column = {
   title: string
   position: number
 }
-
-export const DEFAULT_COLUMN_TITLES = ['To Do', 'In Progress', 'Done'] as const

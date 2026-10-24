@@ -10,8 +10,11 @@ create table if not exists profiles (
 
 alter table profiles enable row level security;
 
+-- Column-level: email клиенту недоступен (см. 21).
 revoke all on table profiles from anon;
-grant select, insert, update on table profiles to authenticated;
+grant select (id, name, avatar_url) on table profiles to authenticated;
+grant insert (id, name, avatar_url) on table profiles to authenticated;
+grant update (name, avatar_url)     on table profiles to authenticated;
 grant all on table profiles to service_role;
 
 drop policy if exists "Authenticated users can view profiles" on profiles;

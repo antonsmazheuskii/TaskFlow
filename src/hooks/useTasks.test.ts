@@ -102,6 +102,32 @@ describe('useTasks', () => {
     })
   })
 
+  it('does not duplicate task when realtime insert arrives before mutation result', async () => {
+    const created = makeTask({ id: 'task-new', title: 'Created', position: 1 })
+    fetchTasksMock.mockResolvedValue([makeTask()])
+    createTaskMock.mockImplementation(async () => {
+      result.current.applyRealtimeInsert(created)
+      return created
+    })
+
+    const { result } = renderHookWithQuery(() => useTasks('board-1'))
+
+    await waitFor(() => {
+      expect(result.current.tasks).toHaveLength(1)
+    })
+
+    await result.current.createTask('column-1', 'Created')
+    result.current.applyRealtimeInsert(created)
+    result.current.applyRealtimeUpdate(created)
+
+    await waitFor(() => {
+      expect(result.current.tasks.map((task) => task.id)).toEqual([
+        'task-1',
+        'task-new',
+      ])
+    })
+  })
+
   it('creates task and rolls back failed delete', async () => {
     const existing = makeTask()
     const created = makeTask({ id: 'task-new', title: 'Created', position: 1 })
