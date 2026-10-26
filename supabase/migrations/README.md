@@ -18,7 +18,7 @@
 | 11 | `11_realtime.sql` | Publication Realtime для `columns`, `tasks` |
 | 12 | `12_board_invites.sql` | Email в profiles, invite INSERT |
 | 13 | `13_board_roles.sql` | Политики колонок: только owner |
-| 14 | `14_board_member_management.sql` | Owner удаляет участников |
+| 14 | `14_board_member_management.sql` | Owner удаляет участников (политика; заменена RPC в 23) |
 | 15 | `15_fix_profiles_privacy.sql` | RLS профилей, sync email, RPC invite |
 | 16 | `16_fix_task_ordering.sql` | Атомарный move/reorder задач |
 | 17 | `17_fix_realtime_replica_identity.sql` | `REPLICA IDENTITY FULL` для DELETE |
@@ -27,6 +27,7 @@
 | 20 | `20_grants.sql` | Идемпотентная сверка GRANT/REVOKE для `anon` / `authenticated` / `service_role` |
 | 21 | `21_profiles_email_column_privileges.sql` | Column-level privileges: `profiles.email` недоступен клиенту |
 | 22 | `22_server_side_positions.sql` | `position` назначается триггером под advisory-lock + deferred UNIQUE |
+| 23 | `23_remove_board_member_rpc.sql` | Атомарное удаление участника: owner-check, сброс `assignee_id`, delete в одной транзакции |
 
 ## Привилегии
 

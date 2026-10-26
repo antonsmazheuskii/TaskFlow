@@ -45,7 +45,8 @@ begin
     'public.invite_board_member(uuid, text)',
     'public.reorder_tasks_in_column(uuid, uuid[])',
     'public.move_task_to_column(uuid, uuid, integer)',
-    'public.create_board_with_defaults(text)'
+    'public.create_board_with_defaults(text)',
+    'public.remove_board_member(uuid, uuid)'
   ]
   loop
     if to_regprocedure(v_signature) is null then

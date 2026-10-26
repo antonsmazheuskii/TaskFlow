@@ -47,12 +47,10 @@ npm run dev
 
 1. Создайте проект на [supabase.com](https://supabase.com).
 2. Authentication → Providers → включите **Email**.
-3. SQL Editor: выполните миграции из папки [`supabase/migrations/`](./supabase/migrations/) **строго по порядку** `01` → `22` (инструкция внутри [`supabase/migrations/README.md`](./supabase/migrations/README.md)).
+3. SQL Editor: выполните миграции из папки [`supabase/migrations/`](./supabase/migrations/) **строго по порядку** `01` → `23` (инструкция внутри [`supabase/migrations/README.md`](./supabase/migrations/README.md)).
 4. Database → Publications: убедитесь, что `columns` и `tasks` в `supabase_realtime` (скрипты `11` и `17`).
 5. Создайте демо-пользователей (таблица выше).
 6. Вставьте `VITE_SUPABASE_*` в `.env` (локально) и в Environment Variables на Vercel (для деплоя).
-
-Исходные SQL также лежат в `supabase/*.sql` (история разработки); для новой БД используйте только `supabase/migrations/`.
 
 ## Деплой на Vercel
 
@@ -104,13 +102,32 @@ vercel --prod   # Production
 - Загрузка аватара/файлов в Storage
 - Фильтры и поиск, activity log
 - Переключатель темы, Google OAuth, хоткеи
+## Тесты
+
+```bash
+npm run test              # unit: хуки boards/tasks, изоляция кэша AuthProvider (jsdom, без сети)
+npm run test:integration  # против реального Supabase из .env
+```
+
+Интеграционные тесты (`tests/integration/`) используют две учётки (по умолчанию демо из README,
+переопределяются `TEST_*` в `.env`), создают временную доску и удаляют её после прогона. Покрытие:
+
+- RLS и привилегии: `anon` без доступа, `profiles.email` закрыт column-grant, участник не трогает
+  чужой профиль / колонки / доску / участников, подмена `created_by` отклоняется.
+- Конкурентность: параллельные INSERT задач и колонок получают уникальные плотные `position`,
+  клиентский `position` игнорируется.
+- `remove_board_member`: owner-only, владельца не удалить, снятие `assignee_id` и потеря доступа — атомарно.
+
+Без `VITE_SUPABASE_*` в окружении интеграционные тесты пропускаются.
+
 ## Скрипты
 
 ```bash
-npm run dev        # разработка
-npm run typecheck  # tsc strict
-npm run test       # vitest (хуки boards/tasks)
-npm run build      # tsc -b && vite build
+npm run dev               # разработка
+npm run typecheck         # tsc strict (app + tests)
+npm run test              # vitest unit
+npm run test:integration  # vitest против Supabase
+npm run build             # tsc -b && vite build
 npm run preview
 npm run lint
 ```
